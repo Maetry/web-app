@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react';
 import { SafeDateInterval } from '@/services/maestri/api-generated';
 import { format, isPast } from 'date-fns';
 import { cn } from '@/utils/cn';
+import { Button } from '@/components/Button';
 
 const lang = 'ru';
 
@@ -118,6 +119,7 @@ export default function Schedule() {
                     <ul className="flex gap-1 flex-col text-sm text-black font-medium mt-3">
                       {getLongMonths().map((month, i) => (
                         <li
+                          key={i}
                           onClick={() => {
                             setDate((date) => {
                               const nextDate = new Date(date);
@@ -138,7 +140,7 @@ export default function Schedule() {
             </Popover.Root>
           </div>
         </div>
-        <div className="h-full grow bg-white min-h-0 overflow-auto py-9 px-6">
+        <div className="relative h-full grow bg-white min-h-0 overflow-auto py-9 px-6">
           <div
             className="grid gap-x-1.5 gap-y-5 grid-flow-row"
             style={{ gridTemplateColumns: `repeat(${monthDays.length + 1}, 3.5rem)` }}
@@ -263,6 +265,88 @@ export default function Schedule() {
                 ))}
               </React.Fragment>
             ))}
+          </div>
+          <div className="w-xs bg-white drop-shadow-2xl h-full p-5 border-black/10 border-l absolute top-0 right-0 transition-all">
+            <h2 className="text-2xl font-semibold">Настройка дня</h2>
+            <div className="mt-5 rounded p-2 drop-shadow-2xl flex flex-col">
+              <span>Мастер маникюра</span>
+              <div className="flex flex-col gap-4 mt-5">
+                <div className="text-base font-medium">Рабочее время</div>
+                <div className="flex max-w-full gap-3">
+                  <input
+                    placeholder="С"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                  <input
+                    placeholder="До"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 mt-5">
+                <div className="text-base font-medium">Перерыв</div>
+                <div className="flex max-w-full gap-3">
+                  <input
+                    placeholder="С"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                  <input
+                    placeholder="До"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 mt-5">
+                <div className="text-base font-medium">Начало графика</div>
+                <div className="flex max-w-full gap-3">
+                  <input
+                    placeholder="С"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                  <input
+                    placeholder="До"
+                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
+                    style={{
+                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between mt-6">
+                <Button
+                  variant="secondary"
+                  className="py-0.5 px-2 text-sm leading-none"
+                  style={{
+                    boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                  }}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  className="py-1 text-white px-2 text-sm leading-none bg-[#6F97FF]"
+                  style={{
+                    boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
+                  }}
+                >
+                  Сохранить
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -310,31 +310,6 @@ export default function Schedule() {
     setHiddenEmployees((prev) => new Set([...prev, employeeId]));
   };
 
-  const handleSetSchedule = (
-    employeeId: string,
-    employeeName: string,
-    type: 'daily' | 'weekly' | 'custom',
-  ) => {
-    const employee = allEmployees.find((emp) => emp.id === employeeId);
-    setSelectedEntity({
-      id: employeeId,
-      name: employeeName,
-      avatar: employee?.avatar,
-      position: employee?.position?.title,
-      type: 'employee',
-    });
-    setIsWeeklySchedule(type === 'weekly' || type === 'custom');
-    setIsDayOff(false);
-    setScheduleFormData({
-      startTime: '09:00',
-      endTime: '18:00',
-      selectedDate: new Date(),
-      selectedWeekdays: new Set(['monday', 'wednesday']),
-    });
-    setBreaks([]);
-    setScheduleModalOpen(true);
-  };
-
   const handleSetSalonSchedule = (type: 'daily' | 'weekly' | 'custom') => {
     setSelectedEntity({
       id: currentWorkspaceId || '',

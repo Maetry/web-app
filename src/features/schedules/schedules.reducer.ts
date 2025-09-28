@@ -1,12 +1,14 @@
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import { enhancedApi } from '@/services/maestri/enhanced-api';
 
-const scheduleAdapter = createEntityAdapter<{
+type ScheduleItem = {
   id: string;
   owner: string;
   start: string;
   end: string;
-}>();
+};
+
+const scheduleAdapter = createEntityAdapter<ScheduleItem>();
 
 export const scheduleSelectors = scheduleAdapter.getSelectors();
 
@@ -31,7 +33,7 @@ export const schedulesReducer = createSlice({
             });
 
             return acc;
-          }, [] as any),
+          }, [] as ScheduleItem[]),
         );
       },
     );

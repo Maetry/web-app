@@ -4,13 +4,12 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
-import { useOAuthCallback, useOAuthUrls, useAuth } from '@/features/auth/auth.hooks';
+import { useOAuthCallback, useOAuthUrls } from '@/features/auth/auth.hooks';
 import { authStorage } from '@/features/auth/auth.storage';
 
 export default function AuthPage() {
   const { processCallback, isProcessing, error } = useOAuthCallback();
   const { getGoogleUrl } = useOAuthUrls();
-  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Initialize device ID
