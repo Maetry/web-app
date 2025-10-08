@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? {
         name: userInfo.nickname,
         avatar: userInfo.avatar,
-        subtitle: 'Учётная запись Maestri',
+        subtitle: 'Учётная запись Maetry',
       }
     : undefined;
 
