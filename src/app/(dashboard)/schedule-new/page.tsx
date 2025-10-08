@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useCurrentWorkspace } from '@/features/workspace/hooks/useCurrentWorkspace';
 import {
@@ -10,25 +10,61 @@ import {
 } from '@/services/maestri/enhanced-api';
 import * as Popover from '@radix-ui/react-popover';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useMemo, useState } from 'react';
 import { SafeDateInterval } from '@/services/maestri/api-generated';
-import { format, isPast } from 'date-fns';
+import { addDays, differenceInCalendarDays, format, isPast, startOfDay, startOfMonth } from 'date-fns';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/Button';
 
 const lang = 'ru';
+const DAYS_CHUNK = 30;
+const STICKY_COLUMN_WIDTH = 56; // 3.5rem with 16px root
+const GRID_PADDING_X = 16;
+const GRID_PADDING_Y = 8;
+const GRID_COLUMN_GAP = 6; // tailwind gap-x-1.5 -> 0.375rem
+const SCROLL_EXTRA_OFFSET = 22;
 
-const getLongMonths = (locale = lang) => {
+const getLongMonths = (year: number, locale = lang) => {
   const formatter = new Intl.DateTimeFormat(locale, { month: 'long' });
-  return Array.from({ length: 12 }, (_, i) => formatter.format(new Date(2025, i, 1)));
+  return Array.from({ length: 12 }, (_, i) => formatter.format(new Date(year, i, 1)));
 };
+
+const toScheduleIsoString = (target: Date) =>
+  `${target.getFullYear()}-${format(target, 'LL')}-${format(target, 'dd')}T00:00:00.000Z`;
 
 export default function Schedule() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const monthDays = Array.from(
-    Array(new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()),
-    (_, i) => i + 1,
+  const [date, setDate] = useState(() => startOfDay(new Date()));
+  const [monthPickerYear, setMonthPickerYear] = useState(() => new Date().getFullYear());
+  const [gridStartDate, setGridStartDate] = useState(() =>
+    startOfDay(startOfMonth(new Date())),
+  );
+  const [loadedDaysCount, setLoadedDaysCount] = useState(DAYS_CHUNK);
+  const [renderedDaysCount, setRenderedDaysCount] = useState(DAYS_CHUNK * 2);
+  const [scrollTargetDayKey, setScrollTargetDayKey] = useState<string | null>(null);
+  const weekdayFormatter = useMemo(
+    () => new Intl.DateTimeFormat(lang, { weekday: 'short' }),
+    [],
+  );
+
+  const placeholderSentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreRef = useRef(false);
+
+  const visibleDays = useMemo(
+    () =>
+      Array.from({ length: renderedDaysCount }, (_, index) =>
+        addDays(gridStartDate, index),
+      ),
+    [renderedDaysCount, gridStartDate],
+  );
+
+  const fetchEndDate = useMemo(
+    () => addDays(gridStartDate, Math.max(loadedDaysCount - 1, 0)),
+    [gridStartDate, loadedDaysCount],
+  );
+  const gridEndDate = useMemo(
+    () => addDays(gridStartDate, Math.max(renderedDaysCount - 1, 0)),
+    [gridStartDate, renderedDaysCount],
   );
 
   const { currentWorkspaceId } = useCurrentWorkspace();
@@ -47,31 +83,154 @@ export default function Schedule() {
         ...workspaceEmployees.map((employee) => `employee:${employee.id}`),
       ],
       period: {
-        start: `${date.getFullYear()}-${format(date, 'LL')}-01T00:00:00.000Z`,
-        end: `${date.getFullYear()}-${format(date, 'LL')}-${monthDays.length}T00:00:00.000Z`,
+        start: toScheduleIsoString(gridStartDate),
+        end: toScheduleIsoString(fetchEndDate),
       },
     },
     { skip: !currentWorkspaceId },
   );
 
-  const fullMonthTimetableSchedules = useMemo(
+  const timetablesWithIntervals = useMemo(
     () =>
-      getTimetablesSchedulesQuery.data?.map((timetable) => {
-        return {
-          ...timetable,
-          intervals: timetable.intervals.reduce((acc, el) => {
-            acc[new Date(el.start).getDate() - 1] = el;
+      getTimetablesSchedulesQuery.data?.map((timetable) => ({
+        ...timetable,
+        intervalsByDate: timetable.intervals.reduce(
+          (acc, interval) => {
+            const key = format(new Date(interval.start), 'yyyy-MM-dd');
+            acc[key] = interval;
             return acc;
-          }, [] as SafeDateInterval[]),
-        };
-      }),
+          },
+          {} as Record<string, SafeDateInterval>,
+        ),
+      })),
     [getTimetablesSchedulesQuery.data],
   );
 
-  const monthYear = new Intl.DateTimeFormat(lang, {
-    month: 'long',
-    year: 'numeric',
-  }).format(date);
+  useEffect(() => {
+    if (!getTimetablesSchedulesQuery.isFetching) {
+      loadingMoreRef.current = false;
+    }
+  }, [getTimetablesSchedulesQuery.isFetching]);
+
+  useEffect(() => {
+    if (renderedDaysCount <= loadedDaysCount) {
+      return;
+    }
+
+    const sentinel = placeholderSentinelRef.current;
+    const scrollContainer = scrollContainerRef.current;
+
+    if (!sentinel || !scrollContainer) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry || !entry.isIntersecting || loadingMoreRef.current) {
+          return;
+        }
+
+        loadingMoreRef.current = true;
+        setLoadedDaysCount((prev) => prev + DAYS_CHUNK);
+        setRenderedDaysCount((prev) => prev + DAYS_CHUNK);
+      },
+      {
+        root: scrollContainer,
+        threshold: 0.5,
+      },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [loadedDaysCount, renderedDaysCount, getTimetablesSchedulesQuery.isFetching]);
+
+  useEffect(() => {
+    if (!scrollTargetDayKey) {
+      return;
+    }
+
+    const hasTarget = visibleDays.some(
+      (day) => format(day, 'yyyy-MM-dd') === scrollTargetDayKey,
+    );
+
+    if (!hasTarget) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const targetElement = container.querySelector<HTMLDivElement>(
+      `[data-day-key="${scrollTargetDayKey}"]`,
+    );
+
+    if (targetElement) {
+      const targetRect = targetElement.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const offsetLeft = targetRect.left - containerRect.left + container.scrollLeft;
+      const stickyColumn = container.querySelector<HTMLElement>('[data-sticky-column]');
+      const stickyWidth = stickyColumn?.getBoundingClientRect().width ?? STICKY_COLUMN_WIDTH;
+      const safeOffset = stickyWidth + GRID_PADDING_X + GRID_COLUMN_GAP + SCROLL_EXTRA_OFFSET;
+      const targetScrollLeft = Math.max(
+        offsetLeft - safeOffset,
+        0,
+      );
+      container.scrollTo({
+        left: targetScrollLeft,
+        behavior: 'smooth',
+      });
+    }
+
+    setScrollTargetDayKey(null);
+  }, [scrollTargetDayKey, visibleDays]);
+
+  const monthYear = useMemo(
+    () =>
+      new Intl.DateTimeFormat(lang, {
+        month: 'long',
+        year: 'numeric',
+      }).format(date),
+    [date],
+  );
+
+  const handleMonthSelect = (monthIndex: number) => {
+    const targetMonthStart = startOfDay(
+      startOfMonth(new Date(monthPickerYear, monthIndex, 1)),
+    );
+    const targetKey = format(targetMonthStart, 'yyyy-MM-dd');
+
+    setDate(targetMonthStart);
+    setIsMonthPickerOpen(false);
+
+    const withinCurrentGrid =
+      differenceInCalendarDays(targetMonthStart, gridStartDate) >= 0 &&
+      differenceInCalendarDays(targetMonthStart, gridEndDate) <= 0;
+
+    if (withinCurrentGrid) {
+      setScrollTargetDayKey(targetKey);
+      return;
+    }
+
+    const distanceToEnd = differenceInCalendarDays(targetMonthStart, gridEndDate);
+    if (distanceToEnd > 0 && distanceToEnd <= DAYS_CHUNK) {
+      setRenderedDaysCount((prev) => prev + DAYS_CHUNK * 2);
+      setScrollTargetDayKey(targetKey);
+      return;
+    }
+
+    // For large jumps or navigating backwards, rebuild grid around the chosen month.
+    setGridStartDate(targetMonthStart);
+    setLoadedDaysCount(DAYS_CHUNK);
+    setRenderedDaysCount(DAYS_CHUNK * 2);
+    loadingMoreRef.current = false;
+    setScrollTargetDayKey(targetKey);
+  };
 
   return (
     <main className="rounded-tl-xl rounded-bl-xl overflow-hidden">
@@ -99,7 +258,15 @@ export default function Schedule() {
                 />
               </button>
             </div>
-            <Popover.Root open={isMonthPickerOpen} onOpenChange={setIsMonthPickerOpen}>
+            <Popover.Root
+              open={isMonthPickerOpen}
+              onOpenChange={(nextOpen) => {
+                setIsMonthPickerOpen(nextOpen);
+                if (nextOpen) {
+                  setMonthPickerYear(date.getFullYear());
+                }
+              }}
+            >
               <Popover.Trigger asChild>
                 <div className="border cursor-pointer border-black/5 p-1.5 rounded-md text-sm text-[#2a2a34] flex items-center gap-2">
                   {monthYear}
@@ -113,21 +280,32 @@ export default function Schedule() {
                 >
                   <div className="px-2 text-base flex justify-between leading-none font-bold text-black">
                     Выбор месяца
-                    <div className="text-[#428BF9] font-medium">{date.getFullYear()}</div>
+                    <div className="text-[#428BF9] font-medium flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label="Previous year"
+                        className="text-[#428BF9] hover:text-[#0A82FF] transition"
+                        onClick={() => setMonthPickerYear((prev) => prev - 1)}
+                      >
+                        {'<'}
+                      </button>
+                      {monthPickerYear}
+                      <button
+                        type="button"
+                        aria-label="Next year"
+                        className="text-[#428BF9] hover:text-[#0A82FF] transition"
+                        onClick={() => setMonthPickerYear((prev) => prev + 1)}
+                      >
+                        {'>'}
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <ul className="flex gap-1 flex-col text-sm text-black font-medium mt-3">
-                      {getLongMonths().map((month, i) => (
+                      {getLongMonths(monthPickerYear).map((month, i) => (
                         <li
                           key={i}
-                          onClick={() => {
-                            setDate((date) => {
-                              const nextDate = new Date(date);
-                              nextDate.setMonth(i);
-                              return nextDate;
-                            });
-                            setIsMonthPickerOpen(false);
-                          }}
+                          onClick={() => handleMonthSelect(i)}
                           className="cursor-pointer px-2 py-1 rounded hover:bg-[#6F97FF] hover:text-white transition"
                         >
                           {month}
@@ -140,13 +318,23 @@ export default function Schedule() {
             </Popover.Root>
           </div>
         </div>
-        <div className="relative h-full grow bg-white min-h-0 overflow-auto py-9 px-6">
+        <div
+          ref={scrollContainerRef}
+          className="relative h-full grow bg-white min-h-0 overflow-auto py-9 px-6"
+        >
           <div
             className="grid gap-x-1.5 gap-y-5 grid-flow-row"
-            style={{ gridTemplateColumns: `repeat(${monthDays.length + 1}, 3.5rem)` }}
+            style={{
+              gridTemplateColumns: `repeat(${visibleDays.length + 1}, 3.5rem)`,
+              padding: `${GRID_PADDING_Y}px ${GRID_PADDING_X}px`,
+            }}
           >
             {currentWorkspace && (
-              <div className="flex flex-col sticky left-0 bg-white gap-1 text-center w-full">
+              <div
+                data-sticky-column
+                className="flex flex-col sticky bg-white gap-1 text-center w-full"
+                style={{ left: GRID_PADDING_X }}
+              >
                 <Image
                   src={currentWorkspace.logo}
                   width={56}
@@ -158,45 +346,53 @@ export default function Schedule() {
                 <span className="text-xs leading-3 font-medium text-[#2a2a34]">График салона</span>
               </div>
             )}
-            {monthDays.map((day, i) => (
-              <div key={i} className="h-20 flex flex-col text-center shadow-md rounded-sm">
-                <span className="text-base text-[#A5A5BB] border-b border-[#A5A5BB] py-2 leading-none">
-                  <span className="text-[#2a2a34]">{day}</span>{' '}
-                  {new Intl.DateTimeFormat(lang, { weekday: 'short' })
-                    .format(date.setDate(day))
-                    .toLowerCase()}
-                </span>
-                <span className="text-xs flex items-center justify-center h-full text-[#2a2a34] leading-none">
-                  {fullMonthTimetableSchedules && !fullMonthTimetableSchedules[0].intervals[i] && (
-                    <span className="text-[#DB2D37]">Вых.</span>
-                  )}
+            {visibleDays.map((day, index) => {
+              const dayKey = format(day, 'yyyy-MM-dd');
+              const isLoaded = index < loadedDaysCount;
+              const salonSchedule =
+                isLoaded && timetablesWithIntervals?.[0]?.intervalsByDate?.[dayKey];
+              const isFirstPlaceholder = index === loadedDaysCount;
 
-                  {fullMonthTimetableSchedules && fullMonthTimetableSchedules[0].intervals[i] && (
-                    <>
-                      {new Date(
-                        fullMonthTimetableSchedules[0].intervals[i].start,
-                      ).toLocaleTimeString(lang, {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      <br /> - <br />
-                      {new Date(fullMonthTimetableSchedules[0].intervals[i].end).toLocaleTimeString(
-                        lang,
-                        {
+              return (
+                <div
+                  key={dayKey}
+                  ref={isFirstPlaceholder ? placeholderSentinelRef : null}
+                  data-day-key={dayKey}
+                  className="h-20 flex flex-col text-center shadow-md rounded-sm"
+                >
+                  <span className="text-base text-[#A5A5BB] border-b border-[#A5A5BB] py-2 leading-none">
+                    <span className="text-[#2a2a34]">{format(day, 'd')}</span>{' '}
+                    {weekdayFormatter.format(day).toLowerCase()}
+                  </span>
+                  <span className="text-xs flex items-center justify-center h-full text-[#2a2a34] leading-none">
+                    {isLoaded && !salonSchedule && <span className="text-[#DB2D37]">Вых.</span>}
+
+                    {isLoaded && salonSchedule && (
+                      <>
+                        {new Date(salonSchedule.start).toLocaleTimeString(lang, {
                           hour: '2-digit',
                           minute: '2-digit',
-                        },
-                      )}
-                    </>
-                  )}
-                </span>
-              </div>
-            ))}
+                        })}
+                        <br /> - <br />
+                        {new Date(salonSchedule.end).toLocaleTimeString(lang, {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
             {workspaceEmployees.map((employee, i) => (
               <React.Fragment key={employee.id}>
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger asChild>
-                    <div className="flex sticky bg-white z-10 left-0 flex-col items-center gap-0.5 cursor-pointer">
+                    <div
+                      data-sticky-column
+                      className="flex sticky bg-white z-10 flex-col items-center gap-0.5 cursor-pointer"
+                      style={{ left: GRID_PADDING_X }}
+                    >
                       <Image
                         src={employee.avatar}
                         alt=""
@@ -224,130 +420,129 @@ export default function Schedule() {
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
                 </DropdownMenu.Root>
-                {monthDays.map((monthDay, ii) => (
-                  <div
-                    key={`${employee.id}-${monthDay}`}
-                    className={cn(
-                      'flex items-center rounded justify-center text-center font-medium bg-[#F2F7FC] empty:bg-[#F9F9F9] text-[#2A2A34] text-xs leading-none',
-                      {
-                        'opacity-50':
-                          fullMonthTimetableSchedules &&
-                          fullMonthTimetableSchedules[i + 1] &&
-                          isPast(fullMonthTimetableSchedules[i + 1].intervals[ii]?.start),
-                        'border border-[#DB2D37]':
-                          fullMonthTimetableSchedules &&
-                          fullMonthTimetableSchedules[i + 1] &&
-                          !fullMonthTimetableSchedules[i + 1].intervals[ii] &&
-                          !fullMonthTimetableSchedules[0].intervals[ii],
-                      },
-                    )}
-                  >
-                    {fullMonthTimetableSchedules &&
-                      fullMonthTimetableSchedules[i + 1] &&
-                      fullMonthTimetableSchedules[i + 1].intervals[ii] && (
+                {visibleDays.map((day, dayIndex) => {
+                  const dayKey = format(day, 'yyyy-MM-dd');
+                  const isLoaded = dayIndex < loadedDaysCount;
+                  const employeeSchedule =
+                    isLoaded && timetablesWithIntervals?.[i + 1]?.intervalsByDate?.[dayKey];
+                  const salonSchedule =
+                    isLoaded && timetablesWithIntervals?.[0]?.intervalsByDate?.[dayKey];
+
+                  return (
+                    <div
+                      key={`${employee.id}-${dayKey}`}
+                      className={cn(
+                        'flex items-center rounded justify-center text-center font-medium text-xs leading-none',
+                        isLoaded ? 'bg-[#F2F7FC] empty:bg-[#F9F9F9] text-[#2A2A34]' : 'bg-[#E1E1E7]',
+                        {
+                          'opacity-50':
+                            isLoaded && employeeSchedule && isPast(employeeSchedule.start),
+                          'border border-[#DB2D37]':
+                            isLoaded && !employeeSchedule && !salonSchedule,
+                        },
+                      )}
+                    >
+                      {isLoaded && employeeSchedule && (
                         <>
-                          {new Date(
-                            fullMonthTimetableSchedules[i + 1].intervals[ii].start,
-                          ).toLocaleTimeString(lang, {
+                          {new Date(employeeSchedule.start).toLocaleTimeString(lang, {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
                           <br /> - <br />
-                          {new Date(
-                            fullMonthTimetableSchedules[0].intervals[ii].end,
-                          ).toLocaleTimeString(lang, {
+                          {new Date(employeeSchedule.end).toLocaleTimeString(lang, {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
                         </>
                       )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </React.Fragment>
             ))}
           </div>
-          <div className="w-xs bg-white drop-shadow-2xl h-full p-5 border-black/10 border-l absolute top-0 right-0 transition-all">
-            <h2 className="text-2xl font-semibold">Настройка дня</h2>
-            <div className="mt-5 rounded p-2 drop-shadow-2xl flex flex-col">
-              <span>Мастер маникюра</span>
-              <div className="flex flex-col gap-4 mt-5">
-                <div className="text-base font-medium">Рабочее время</div>
-                <div className="flex max-w-full gap-3">
-                  <input
-                    placeholder="С"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                  <input
-                    placeholder="До"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-4 mt-5">
-                <div className="text-base font-medium">Перерыв</div>
-                <div className="flex max-w-full gap-3">
-                  <input
-                    placeholder="С"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                  <input
-                    placeholder="До"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-4 mt-5">
-                <div className="text-base font-medium">Начало графика</div>
-                <div className="flex max-w-full gap-3">
-                  <input
-                    placeholder="С"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                  <input
-                    placeholder="До"
-                    className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"
-                    style={{
-                      boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between mt-6">
-                <Button
-                  variant="secondary"
-                  className="py-0.5 px-2 text-sm leading-none"
-                  style={{
-                    boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                  }}
-                >
-                  Отмена
-                </Button>
-                <Button
-                  className="py-1 text-white px-2 text-sm leading-none bg-[#6F97FF]"
-                  style={{
-                    boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',
-                  }}
-                >
-                  Сохранить
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/*<div className="w-xs bg-white drop-shadow-2xl h-full p-5 border-black/10 border-l absolute top-0 right-0 transition-all">*/}
+          {/*  <h2 className="text-2xl font-semibold">Настройка дня</h2>*/}
+          {/*  <div className="mt-5 rounded p-2 drop-shadow-2xl flex flex-col">*/}
+          {/*    <span>Мастер маникюра</span>*/}
+          {/*    <div className="flex flex-col gap-4 mt-5">*/}
+          {/*      <div className="text-base font-medium">Рабочее время</div>*/}
+          {/*      <div className="flex max-w-full gap-3">*/}
+          {/*        <input*/}
+          {/*          placeholder="С"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*        <input*/}
+          {/*          placeholder="До"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*    <div className="flex flex-col gap-4 mt-5">*/}
+          {/*      <div className="text-base font-medium">Перерыв</div>*/}
+          {/*      <div className="flex max-w-full gap-3">*/}
+          {/*        <input*/}
+          {/*          placeholder="С"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*        <input*/}
+          {/*          placeholder="До"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*    <div className="flex flex-col gap-4 mt-5">*/}
+          {/*      <div className="text-base font-medium">Начало графика</div>*/}
+          {/*      <div className="flex max-w-full gap-3">*/}
+          {/*        <input*/}
+          {/*          placeholder="С"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*        <input*/}
+          {/*          placeholder="До"*/}
+          {/*          className="rounded-sm max-w-24 basis-1/2 flex py-1 px-1.5 drop-shadow-2xl"*/}
+          {/*          style={{*/}
+          {/*            boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*          }}*/}
+          {/*        />*/}
+          {/*      </div>*/}
+          {/*    </div>*/}
+          {/*    <div className="flex justify-between mt-6">*/}
+          {/*      <Button*/}
+          {/*        variant="secondary"*/}
+          {/*        className="py-0.5 px-2 text-sm leading-none"*/}
+          {/*        style={{*/}
+          {/*          boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*        }}*/}
+          {/*      >*/}
+          {/*        Отмена*/}
+          {/*      </Button>*/}
+          {/*      <Button*/}
+          {/*        className="py-1 text-white px-2 text-sm leading-none bg-[#6F97FF]"*/}
+          {/*        style={{*/}
+          {/*          boxShadow: '0px 0px 0px 0.5px #0000000D, 0px 0.5px 2.5px 0px #0000004D',*/}
+          {/*        }}*/}
+          {/*      >*/}
+          {/*        Сохранить*/}
+          {/*      </Button>*/}
+          {/*    </div>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
         </div>
       </section>
     </main>
