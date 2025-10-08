@@ -7,7 +7,7 @@ import {
 
 export const useCurrentWorkspace = () => {
   const dispatch = useAppDispatch();
-  const currentWorkspaceId = useAppSelector((state) => state.workspace.currentWorkspaceId);
+  const currentWorkspaceId = useAppSelector((state) => state.workspace.current);
 
   return useMemo(() => ({
     currentWorkspaceId,

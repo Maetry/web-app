@@ -13,7 +13,7 @@ export const enhancedApi = _api.enhanceEndpoints({
           const state = getState() as RootState;
 
           // Synchronously set current workspace if null and workspaces exist
-          if (workspaces.length > 0 && state.workspace.currentWorkspaceId === null) {
+          if (workspaces.length > 0 && state.workspace.current === null) {
             dispatch(setCurrentWorkspaceId({ currentWorkspaceId: workspaces[0].id }));
           }
         } catch {

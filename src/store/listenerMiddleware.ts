@@ -23,7 +23,7 @@ startAppListening({
         { type: 'TimetablesSchedules', id: 'LIST' },
         { type: 'WorkspaceEmployees', id: 'LIST' },
         { type: 'Workspace', id: action.payload.currentWorkspaceId || 'LIST' },
-      ])
+      ]),
     );
   },
 });
