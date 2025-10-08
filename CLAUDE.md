@@ -52,14 +52,14 @@ src/
 ├── features/          # Feature-based modules
 │   └── workspace/     # Workspace management feature
 ├── services/          # API service layer
-│   └── maestri/       # Generated API client from OpenAPI
+│   └── maestri/       # Generated API client from OpenAPI (Maetry backend)
 ├── store/             # Redux store configuration
 └── utils/             # Utility functions
 ```
 
 ### API Code Generation
 
-The project uses RTK Query with OpenAPI code generation for the Maestri API:
+The project uses RTK Query with OpenAPI code generation for the Maetry API:
 
 ```bash
 # Regenerate API types from OpenAPI spec

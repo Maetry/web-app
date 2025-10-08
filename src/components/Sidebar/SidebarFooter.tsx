@@ -37,7 +37,7 @@ export const SidebarFooter = ({
 
   const displayUser = user || { 
     name: 'Loading...', 
-    subtitle: 'Учётная запись Maestri' 
+    subtitle: 'Учётная запись Maetry' 
   };
 
   return (
