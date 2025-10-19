@@ -15,6 +15,9 @@ import {
   SidebarFooter,
   type NavItem,
 } from '@/components/Sidebar';
+import { useGetWorkspaceByIdQuery, useGetWorkspaceQuery } from '@/services/maestri/enhanced-api';
+import { useCurrentWorkspace } from '@/features/workspace/hooks/useCurrentWorkspace';
+import { useGetUsersQuery } from '@/services/maestri/api-generated';
 
 const menuItems: NavItem[] = [
   {
@@ -97,7 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarNav items={menuItems} />
         </Sidebar.Content>
 
-        <Sidebar.Footer>{/*<SidebarFooter user={null} />*/}</Sidebar.Footer>
+        {/*<Sidebar.Footer>/!*<SidebarFooter user={null} />*!/</Sidebar.Footer>*/}
       </Sidebar>
 
       <main className="flex-1 overflow-y-auto">{children}</main>
