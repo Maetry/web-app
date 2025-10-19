@@ -7,9 +7,6 @@ import IconClients from '~/public/icons/icon-clients.svg';
 import IconSchedule from '~/public/icons/icon-schedule.svg';
 import IconFinance from '~/public/icons/icon-finance.svg';
 import IconStatistics from '~/public/icons/icon-statistics.svg';
-import { useGetWorkspaceQuery, useGetWorkspaceByIdQuery } from '@/services/maestri/enhanced-api';
-import { useGetUsersQuery } from '@/services/maestri/api-generated';
-import { useCurrentWorkspace } from '@/features/workspace/hooks/useCurrentWorkspace';
 import { Path } from '@/router/paths';
 import {
   Sidebar,
@@ -100,9 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarNav items={menuItems} />
         </Sidebar.Content>
 
-        <Sidebar.Footer>
-          <SidebarFooter user={userData} />
-        </Sidebar.Footer>
+        <Sidebar.Footer>{/*<SidebarFooter user={null} />*/}</Sidebar.Footer>
       </Sidebar>
 
       <main className="flex-1 overflow-y-auto">{children}</main>

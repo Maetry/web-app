@@ -1,11 +1,14 @@
 import { createSlice, PayloadAction, createEntityAdapter } from '@reduxjs/toolkit';
-import { enhancedApi } from '@/services/maestri/enhanced-api';
+import { api } from '@/services/maestri/enhanced-api';
+
 import type { WorkspaceResponsesPartial } from '@/services/maestri/api-generated';
 
 interface WorkspaceSettings {
   id: string;
   minStart: string;
   maxEnd: string;
+  hiddenSchedules: string[];
+  editingScheduleId: string;
 }
 
 const workspaceAdapter = createEntityAdapter<WorkspaceResponsesPartial>();
@@ -28,13 +31,19 @@ const initialState: WorkspaceState = {
 
 const calculateDateRange = (workspaceId: string): WorkspaceSettings => {
   const today = new Date();
-  const minStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString();
+  const minStart = new Date(
+    today.getFullYear() - 1,
+    today.getMonth(),
+    today.getDate(),
+  ).toISOString();
   const maxEnd = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString();
 
   return {
     id: workspaceId,
     minStart,
     maxEnd,
+    editingScheduleId: '',
+    hiddenSchedules: [],
   };
 };
 
@@ -42,11 +51,8 @@ export const workspaceReducer = createSlice({
   name: 'workspace',
   initialState,
   reducers: {
-    setCurrentWorkspaceId(
-      state,
-      action: PayloadAction<{ currentWorkspaceId: string | null }>,
-    ) {
-      state.current = action.payload.currentWorkspaceId;
+    setCurrentWorkspaceId(state, action: PayloadAction<{ id: string | null }>) {
+      state.current = action.payload.id;
     },
     clearCurrentWorkspaceId(state) {
       state.current = null;
@@ -54,27 +60,21 @@ export const workspaceReducer = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        enhancedApi.endpoints.getWorkspace.matchFulfilled,
-        (state, action) => {
-          workspaceAdapter.setAll(state.items, action.payload);
+      .addMatcher(api.endpoints.getWorkspace.matchFulfilled, (state, action) => {
+        workspaceAdapter.setAll(state.items, action.payload);
 
-          // Create settings for each workspace
-          const workspaceSettings = action.payload.map((workspace) =>
-            calculateDateRange(workspace.id)
-          );
-          settingsAdapter.setAll(state.settings, workspaceSettings);
-        },
-      )
-      .addMatcher(
-        enhancedApi.endpoints.getWorkspaceById.matchFulfilled,
-        (state, action) => {
-          workspaceAdapter.upsertOne(state.items, action.payload);
+        // Create settings for each workspace
+        const workspaceSettings = action.payload.map((workspace) =>
+          calculateDateRange(workspace.id),
+        );
+        settingsAdapter.setAll(state.settings, workspaceSettings);
+      })
+      .addMatcher(api.endpoints.getWorkspaceById.matchFulfilled, (state, action) => {
+        workspaceAdapter.upsertOne(state.items, action.payload);
 
-          // Upsert settings for this workspace
-          settingsAdapter.upsertOne(state.settings, calculateDateRange(action.payload.id));
-        },
-      );
+        // Upsert settings for this workspace
+        settingsAdapter.upsertOne(state.settings, calculateDateRange(action.payload.id));
+      });
   },
 });
 

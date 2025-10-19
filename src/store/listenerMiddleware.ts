@@ -1,7 +1,10 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit';
+
+import { api } from '@/services/maestri/enhanced-api';
+import { initializeApp } from '@/features/common/common.actions';
+
 import type { AppDispatch, RootState } from '@/store/types';
 import { setCurrentWorkspaceId } from '@/features/workspace/workspace.reducer';
-import { api } from '@/services/maestri/reducer';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -12,18 +15,22 @@ export const startAppListening = listenerMiddleware.startListening.withTypes<
 
 export const addAppListener = addListener.withTypes<RootState, AppDispatch>();
 
-// Listen for workspace changes and invalidate related cache
-startAppListening({
-  actionCreator: setCurrentWorkspaceId,
-  effect: async (action, listenerApi) => {
-    // Invalidate schedule-related queries when workspace changes
-    // This will cause them to refetch automatically
-    listenerApi.dispatch(
-      api.util.invalidateTags([
-        { type: 'TimetablesSchedules', id: 'LIST' },
-        { type: 'WorkspaceEmployees', id: 'LIST' },
-        { type: 'Workspace', id: action.payload.currentWorkspaceId || 'LIST' },
-      ]),
-    );
+listenerMiddleware.startListening({
+  actionCreator: initializeApp,
+  effect: async (_, { dispatch, getState }) => {
+    try {
+      const workspaces = await dispatch(api.endpoints.getWorkspace.initiate()).unwrap();
+      const state = getState() as RootState;
+      const id = workspaces[0]?.id;
+
+      if (id && !state.workspace.current) {
+        dispatch(setCurrentWorkspaceId({ id }));
+      }
+
+      dispatch(api.endpoints.getUsers.initiate());
+      dispatch(api.endpoints.getWorkspaceById.initiate({ id }));
+    } catch (error) {
+      console.log(error);
+    }
   },
 });

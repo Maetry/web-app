@@ -1,5 +1,5 @@
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
-import { enhancedApi } from '@/services/maestri/enhanced-api';
+import { api } from '@/services/maestri/enhanced-api';
 
 type ScheduleItem = {
   id: string;
@@ -17,26 +17,23 @@ export const schedulesReducer = createSlice({
   initialState: scheduleAdapter.getInitialState(),
   reducers: {},
   extraReducers: (builder) => {
-    builder.addMatcher(
-      enhancedApi.endpoints.getTimetablesSchedules.matchFulfilled,
-      (state, action) => {
-        scheduleAdapter.upsertMany(
-          state,
-          action.payload.reduce((acc, entityTimetable) => {
-            entityTimetable.intervals.forEach((entityInterval) => {
-              acc.push({
-                id: `${entityTimetable.owner}:${entityInterval.start.slice(0, 10)}`,
-                owner: entityTimetable.owner,
-                start: entityInterval.start,
-                end: entityInterval.end,
-              });
+    builder.addMatcher(api.endpoints.getTimetablesSchedules.matchFulfilled, (state, action) => {
+      scheduleAdapter.upsertMany(
+        state,
+        action.payload.reduce((acc, entityTimetable) => {
+          entityTimetable.intervals.forEach((entityInterval) => {
+            acc.push({
+              id: `${entityTimetable.owner}:${entityInterval.start.slice(0, 10)}`,
+              owner: entityTimetable.owner,
+              start: entityInterval.start,
+              end: entityInterval.end,
             });
+          });
 
-            return acc;
-          }, [] as ScheduleItem[]),
-        );
-      },
-    );
+          return acc;
+        }, [] as ScheduleItem[]),
+      );
+    });
   },
 });
 
