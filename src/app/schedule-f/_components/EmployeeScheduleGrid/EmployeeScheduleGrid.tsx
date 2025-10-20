@@ -41,7 +41,7 @@ export const EmployeeScheduleGrid = ({ employee, datePeriods }: EmployeeSchedule
   );
 
   return (
-    <div className="border p-4">
+    <div className="p-4">
       <h3 className="font-semibold mb-2">{employee.nickname}</h3>
       <div className="flex gap-2 flex-wrap">
         {allDates.map((date) => {

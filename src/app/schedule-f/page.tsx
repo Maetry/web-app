@@ -23,9 +23,6 @@ export default function SchedulePage() {
             <EmployeeScheduleGrid key={employee.id} employee={employee} datePeriods={datePeriods} />
           ))}
         </div>
-        <div className="mt-4">
-          <Button onClick={loadNextPeriod}>Load Next Period</Button>
-        </div>
       </div>
       <EditScheduleDrawer />
     </Drawer.Root>
