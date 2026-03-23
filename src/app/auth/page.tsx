@@ -9,7 +9,7 @@ import { authStorage } from '@/features/auth/auth.storage';
 
 export default function AuthPage() {
   const { processCallback, isProcessing, error } = useOAuthCallback();
-  const { getGoogleUrl } = useOAuthUrls();
+  const { getGoogleUrl, getAppleUrl } = useOAuthUrls();
 
   useEffect(() => {
     // Initialize device ID
@@ -96,7 +96,17 @@ export default function AuthPage() {
         </button>
 
         {/* Apple Button */}
-        <button className="flex items-center justify-center w-full py-3 bg-black rounded-lg hover:bg-gray-900 transition-colors">
+        <button
+          className="flex items-center justify-center w-full py-3 bg-black rounded-lg hover:bg-gray-900 transition-colors"
+          onClick={() => {
+            const url = getAppleUrl();
+            if (url) {
+              window.location.href = url;
+            } else {
+              console.error('Apple OAuth URL not configured');
+            }
+          }}
+        >
           <FaApple className="w-5 h-5 mr-2 text-white" />
           <span className="text-base font-medium text-white">Войти с помощью Apple</span>
         </button>

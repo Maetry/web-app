@@ -17,6 +17,26 @@ export function generateGoogleOAuthUrl(config: OAuthConfig): string {
 }
 
 /**
+ * Generate Apple OAuth URL
+ * Apple uses response_mode=fragment for SPAs and response_type=code id_token
+ */
+export function generateAppleOAuthUrl(config: OAuthConfig & { state?: string }): string {
+  const params = new URLSearchParams({
+    client_id: config.clientId,
+    response_type: 'code id_token',
+    response_mode: 'fragment',
+    scope: config.scope || OAUTH_SCOPES.APPLE,
+    redirect_uri: config.redirectUri,
+  });
+
+  if (config.state) {
+    params.append('state', config.state);
+  }
+
+  return `${OAUTH_ENDPOINTS.APPLE}?${params.toString()}`;
+}
+
+/**
  * Parse and validate OAuth callback parameters
  */
 export function parseOAuthCallback(hash: string): {
