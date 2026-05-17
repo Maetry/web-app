@@ -64,33 +64,28 @@ export default function AuthPage() {
             </p>
           )}
 
-          {appleAvailable ? (
+          <div className="flex flex-col gap-1">
             <Button
               variant="outline"
               size="lg"
               className="w-full"
-              disabled={busy || !appleReady}
+              disabled={busy || !appleAvailable || !appleReady}
               onClick={handleApple}
             >
               <Apple aria-hidden /> Продолжить с Apple
             </Button>
-          ) : (
-            <p className="text-muted-foreground text-center text-xs">
-              Apple-вход не настроен (нет NEXT_PUBLIC_APPLE_OAUTH_CLIENT_ID).
-            </p>
-          )}
+            {!appleAvailable && (
+              <p className="text-muted-foreground text-center text-xs">
+                Apple-вход появится позже — нужен Apple Services ID.
+              </p>
+            )}
+          </div>
 
           {busy && <p className="text-muted-foreground text-center text-sm">Выполняется вход…</p>}
 
           {(error || appleError) && (
             <p role="alert" className="text-destructive text-center text-sm">
               {error ?? appleError}
-            </p>
-          )}
-
-          {!googleAvailable && !appleAvailable && (
-            <p className="text-muted-foreground text-center text-xs">
-              Укажите OAuth client ID в <code>.env.local</code>, чтобы включить вход.
             </p>
           )}
         </CardContent>
