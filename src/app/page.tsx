@@ -1,40 +1,15 @@
-'use client';
-
-import { useAuthGate } from '@/features/auth/auth.hooks';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const { isChecking, error } = useAuthGate();
-
-  // Show loading state while checking auth
-  if (isChecking) {
-    return (
-      <main className="flex items-center justify-center min-h-svh">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-[#252630] mb-2">Проверка авторизации...</h2>
-          <p className="text-base text-[#4B5563]">Пожалуйста, подождите</p>
-        </div>
-      </main>
-    );
-  }
-
-  // Show error if there's a network issue (not auth issue, as those redirect)
-  if (error && error.code === 'NETWORK_ERROR') {
-    return (
-      <main className="flex items-center justify-center min-h-svh">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Ошибка подключения</h2>
-          <p className="text-base text-[#4B5563] mb-4">{error.message}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Попробовать снова
-          </button>
-        </div>
-      </main>
-    );
-  }
-
-  // This should not be visible as useAuthGate redirects
-  return null;
+  return (
+    <main className="flex min-h-svh items-center justify-center p-6">
+      <div className="bg-card text-card-foreground w-full max-w-md rounded-xl border p-8 text-center shadow-sm">
+        <h1 className="text-foreground text-2xl font-semibold">Maestri</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Заглушка. Интерфейс будет реализован заново на shadcn / Base UI.
+        </p>
+        <Button className="mt-6">Готово к разработке</Button>
+      </div>
+    </main>
+  );
 }

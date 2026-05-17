@@ -4,94 +4,140 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15.4.6 application with TypeScript, using Turbopack for development and managing dependencies with pnpm (10.7.1). The project requires Node.js 22.14.0.
+Frontend for **Maestri**, a salon/workspace scheduling product. Next.js 16 (App Router) +
+React 19 + TypeScript 6 (strict), Redux Toolkit / RTK Query for data, Tailwind CSS v4. All API
+data comes from the external **Maestri** REST API; this repo contains no backend.
 
-## Development Commands
+> **The UI was reset.** All pages and UI components were deleted; the app is being rebuilt with
+> **shadcn (Base UI)**. The business/data layer (`src/services`, `src/store`, `src/features`,
+> `src/hooks`, `src/router`) is preserved untouched **as a working reference** — it is no longer
+> wired to any page yet. The only route is `/` (`src/app/page.tsx`), a placeholder.
 
-```bash
-# Install dependencies
-pnpm install
+## Toolchain (Bun)
 
-# Development server with Turbopack
-pnpm dev
+Package manager is **Bun 1.2.15** (migrated off pnpm). Node **>=22** (`engines`). `bunfig.toml`
+sets `[install] exact = true` so `bun add`/`bun update` write pinned versions (the project keeps a
+strictly-pinned dependency tree — no `^`/`~`). `.npmrc` only carries the registry. `bun.lock` is
+the lockfile (`pnpm-lock.yaml` is gone).
 
-# Build production
-pnpm build
+`package.json` `trustedDependencies` allowlists native postinstalls (`@parcel/watcher`,
+`@swc/core`, `@tailwindcss/oxide`, `esbuild`, `sharp`, `unrs-resolver`) — Bun blocks postinstalls
+by default, so a fresh `bun install` needs this or native deps won't build. (`msw`'s postinstall
+stays blocked on purpose — optional transitive tooling.)
 
-# Start production server
-pnpm start
-
-# Linting
-pnpm lint
-
-# Format checking
-pnpm format:check
-
-# Format auto-fix
-pnpm format:write
-```
-
-## Architecture
-
-### Tech Stack
-- **Framework**: Next.js 15.4.6 with App Router
-- **State Management**: Redux Toolkit with RTK Query
-- **UI Components**: Radix UI primitives with Tailwind CSS v4
-- **Forms**: React Hook Form
-- **Icons**: Lucide React and custom SVGs via @svgr/webpack
-
-### Project Structure
-
-```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── (auth)/         # Auth group routes
-│   ├── (dashboard)/    # Dashboard layout group
-│   └── store-provider.tsx # Redux provider wrapper
-├── components/         # Reusable UI components
-├── features/          # Feature-based modules
-│   └── workspace/     # Workspace management feature
-├── services/          # API service layer
-│   └── maestri/       # Generated API client from OpenAPI
-├── store/             # Redux store configuration
-└── utils/             # Utility functions
-```
-
-### API Code Generation
-
-The project uses RTK Query with OpenAPI code generation for the Maestri API:
+## Commands
 
 ```bash
-# Regenerate API types from OpenAPI spec
+bun install            # install deps (generates/uses bun.lock)
+bun run dev            # next dev --experimental-https        (HTTPS note below)
+bun run build          # next build  (Turbopack; output: 'standalone')
+bun run start          # serve production build
+bun run lint           # eslint .    (see ESLint note below)
+bun run format:check   # prettier --check  (run before committing)
+bun run format:write   # prettier --write
+```
+
+- **`bun run dev` serves over HTTPS** (`https://localhost:3000`) via `--experimental-https`. Certs
+  auto-generate into a gitignored dir on first run. HTTPS is required because Google/Apple OAuth
+  redirect URIs must be HTTPS. (Turbopack is the default bundler in Next 16; no `--turbopack` flag.)
+- **There is no test framework or tests.** No test script. Do not claim to "run the tests"; verify
+  via `bun run build` + `bun run lint` and manual checks in the browser.
+- **Required env var: `NEXT_PUBLIC_API_BASE_URL`** — base URL of the Maestri API
+  (`src/services/maestri/reducer.ts`). `.env*` is gitignored and no example is committed; ask the
+  user for the value if API calls 404/fail.
+
+## ESLint note (pinned to v9 on purpose)
+
+`eslint` is intentionally pinned to **9.x**, not 10, even though everything else is on latest
+majors. `eslint-config-next` 16 pulls `eslint-plugin-react` transitively, and **no released
+`eslint-plugin-react` supports ESLint 10** (it calls the removed `context.getFilename()`), so
+ESLint 10 crashes the lint run. ESLint 9 is the maintained line for the Next 16 lint stack. Revisit
+when the plugin ecosystem catches up.
+
+`eslint.config.mjs` is flat config: it imports `eslint-config-next/core-web-vitals` and
+`eslint-config-next/typescript` **directly** (no `FlatCompat` — that path also breaks on the new
+plugin graph). It must list `ignores` for `.next/**` etc. because `eslint .` (Next 16 removed
+`next lint`) does not auto-ignore build output. A scoped override downgrades the stricter
+`eslint-plugin-react-hooks` v7 rules (`set-state-in-effect`, `refs`) to **warnings** for the
+preserved legacy layer (`src/features|services|store|hooks/**`, plus the retained
+`store-provider.tsx`/`layout.tsx`) — that code is out of scope for the refactor and kept as-is, so
+lint stays green (warnings only) while the issues stay visible for future reimplementation.
+
+## API Code Generation (RTK Query + OpenAPI)
+
+```bash
 cd src/services/maestri
-npx @rtk-query/codegen-openapi codegen-config.ts
+bunx @rtk-query/codegen-openapi codegen-config.ts
 ```
 
-The generated code (`api-generated.ts`) is enhanced in `enhanced-api.ts` with additional logic like workspace state synchronization.
+- Reads `src/services/maestri/openapi.json`. **`openapi.json` is gitignored** (`src/services/**/*.json`)
+  — it must be supplied externally before regenerating; it is not in the repo.
+- `codegen-config.ts`: `apiFile: ./reducer.ts`, `exportName: _api`, `hooks: true`, and an
+  `endpointOverrides` that strips the `Device-ID` header param from every generated signature (it's
+  injected centrally by the base query instead).
+- `api-generated.ts` (~2k lines, **committed**) is the generated output — do not hand-edit it.
+- Add custom per-endpoint logic in `enhanced-api.ts` via `_api.enhanceEndpoints(...)`, not in the
+  generated file.
 
-### Key Patterns
+## Architecture: data flow (preserved reference)
 
-1. **Path Aliases**: Use `@/*` for src/ imports and `~/*` for root imports
-2. **SVG Components**: SVGs are imported as React components via @svgr/webpack
-3. **Redux Store**: Configured with listener middleware and API middleware
-4. **Enhanced API**: Base generated API is wrapped with custom logic in enhanced-api.ts
+`reducer.ts` (base query) → `api-generated.ts` (codegen'd endpoints) → `enhanced-api.ts` (custom
+logic) → consumed via RTK Query hooks; store wired in `src/store/index.ts`.
 
-### Styling
+- **Store** (`src/store/index.ts`): `makeStore()` combines the RTK Query api reducer +
+  `workspace` + `schedules` slices, and prepends `listenerMiddleware` then `api.middleware`.
+  Provided to React in `src/app/store-provider.tsx` (still mounted in the root layout, so
+  `initializeApp` still runs even though no page consumes the data yet).
+- **App init** (`src/store/listenerMiddleware.ts`): on `initializeApp` it fetches `getWorkspace`,
+  sets the first workspace as current if none selected, then fires `getUsers` and
+  `getWorkspaceById`.
+- **Auth/workspace token model** — the non-obvious core:
+  - Tokens live in `localStorage`, managed by `authStorage` (`src/features/auth/auth.storage.ts`):
+    `accessToken`, `refreshToken`, `employeeToken`, plus a generated `deviceId`.
+  - Base query (`reducer.ts`) sends `Device-ID` on every request and `Authorization: Bearer`
+    using **`employeeToken` if present, else `accessToken`**. It explicitly **deletes the
+    `Authorization` header for the `getTimetablesSchedules` endpoint**.
+  - `enhanced-api.ts` hooks `getWorkspaceById.onQueryStarted` and writes the returned
+    `employeeToken` into `authStorage`. So **switching workspace re-scopes auth as a side effect of
+    calling `useGetWorkspaceByIdQuery`** — if nothing calls that hook, the employee token never
+    updates. (The old `(dashboard)/layout.tsx` called it eagerly; that layout was deleted, so any
+    new shell must call it again for the employee token to refresh.)
+  - Workspace selection: `src/features/workspace/` slice + hooks (`useCurrentWorkspace`,
+    `useWorkspaceById`, `useWorkspaceSettings`).
+- **Auth flow (hooks only, not wired)**: `useAuthGate()` / `useOAuthCallback()` /
+  `useOAuthUrls()` in `src/features/auth/auth.hooks.ts` still implement the OAuth (Google + Apple)
+  gate and callback, but the pages that used them (`/`, `/auth`) were deleted. Reuse these hooks
+  when rebuilding auth. Route constants: `src/router/paths.ts` (`Path` enum) — note most `Path`
+  targets no longer have pages.
 
-- Uses Tailwind CSS v4 with PostCSS
-- Radix UI components for accessible primitives
-- Custom Button component with CVA for variants
-- Utility function `cn()` for className merging
+## UI conventions (shadcn + Base UI)
 
-### Image Handling
+- **shadcn is configured** (`components.json`, style `base-luma` → **Base UI**, not Radix; Radix is
+  fully removed). Add primitives on demand with the shadcn CLI; don't hand-roll Radix wrappers.
+- `src/components/ui/button.tsx` is the reference component: `cva` + `VariantProps` +
+  `@base-ui/react` primitive + `cn`. Follow this shape for new `ui/` components.
+- **`cn()` lives at `src/lib/utils.ts`** (`clsx` + `tailwind-merge`). The old `src/utils/cn.ts` was
+  deleted — import from `@/lib/utils`.
+- **Tailwind v4 + theme tokens now work.** `src/app/globals.css` has a real `@theme inline` block
+  plus `:root`/`.dark` CSS variables (shadcn token set + `tw-animate-css`). Semantic tokens
+  (`bg-background`, `text-foreground`, `bg-primary`, `text-muted-foreground`, `border-border`,
+  `ring-ring`, …) **resolve correctly** — prefer them for new UI over arbitrary hex. No
+  `tailwind.config.js` (CSS-first).
+- **Path aliases**: `@/*` → `src/*`; `~/*` → repo root (e.g. `import Icon from '~/public/icons/x.svg'`).
+- **SVGs as components** via `@svgr/webpack`: `next.config.ts` configures it twice — a
+  `turbopack.rules` entry (used by dev/build, Turbopack is default in Next 16) and a legacy
+  `webpack()` hook (fallback for `next build --webpack`). Keep both in sync if you change it.
+- **Prettier**: `printWidth: 100`, `singleQuote: true` (`prettier.config.mjs`). shadcn CLI emits
+  double-quoted code — run `bun run format:write` after adding components.
 
-Next.js Image component configured for remote images from `storage.googleapis.com`.
+## Known gotchas
 
-## Testing and Quality
-
-The project uses:
-- ESLint with Next.js and Prettier configurations
-- TypeScript strict mode
-- Prettier for code formatting
-
-Always run `pnpm lint` and `pnpm format:check` before committing changes.
+- **`next-intl` is an unused dependency** — no i18n config/middleware/messages. **All UI text is
+  hardcoded in Russian** while the root layout sets `<html lang="en">`. Don't introduce
+  `useTranslations` expecting infra; there is none. (Several deps — `next-intl`, `vaul`,
+  `react-day-picker`, `react-hook-form`, `react-icons` — are currently unused but were
+  intentionally **kept** for the upcoming reimplementation.)
+- Next 16 manages `tsconfig.json` (e.g. it forces `jsx: react-jsx` and adds
+  `.next/**/types`) — expect it to rewrite the file on build; don't fight it.
+- Git history is mostly `wip` commits; don't infer intent from messages.
+- `openapi.json`, `.env*`, and dev HTTPS certs are gitignored — absent on a fresh clone.
