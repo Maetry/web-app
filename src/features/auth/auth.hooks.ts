@@ -4,7 +4,7 @@ import { useGetUsersQuery, usePostAuthGoogleMutation, usePostAuthAppleMutation }
 import { authStorage } from './auth.storage';
 import { parseOAuthCallback, handleAuthError, isAuthError, generateGoogleOAuthUrl, generateAppleOAuthUrl } from './auth.utils';
 import { AUTH_ROUTES, STORAGE_KEYS } from './auth.constants';
-import { AuthState, AuthError, TokenResponseSchema } from './auth.types';
+import { AuthState, AuthError, TokenResponse, TokenResponseSchema } from './auth.types';
 
 /**
  * Hook for managing authentication state

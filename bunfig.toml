@@ -1,0 +1,3 @@
+[install]
+# Pin exact versions on `bun add` (project keeps a strictly pinned toolchain).
+exact = true

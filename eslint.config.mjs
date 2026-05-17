@@ -1,17 +1,32 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  {
+    // Preserved legacy business logic, kept as a reference for future work.
+    // eslint-plugin-react-hooks v7 introduces stricter rules that flag
+    // pre-existing patterns here. This code is intentionally out of scope for
+    // the current refactor and will be reimplemented later, so keep the new
+    // rules visible as warnings instead of rewriting untested auth code.
+    files: [
+      'src/features/**',
+      'src/services/**',
+      'src/store/**',
+      'src/hooks/**',
+      // Retained app shell that wires the preserved store/business logic
+      // (canonical Redux Toolkit per-request store pattern).
+      'src/app/store-provider.tsx',
+      'src/app/layout.tsx',
+    ],
+    rules: {
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+    },
+  },
   eslintConfigPrettier,
 ];
 
