@@ -8,10 +8,12 @@ Frontend for **Maestri**, a salon/workspace scheduling product. Next.js 16 (App 
 React 19 + TypeScript 6 (strict), Redux Toolkit / RTK Query for data, Tailwind CSS v4. All API
 data comes from the external **Maestri** REST API; this repo contains no backend.
 
-> **The UI was reset.** All pages and UI components were deleted; the app is being rebuilt with
-> **shadcn (Base UI)**. The business/data layer (`src/services`, `src/store`, `src/features`,
-> `src/hooks`, `src/router`) is preserved untouched **as a working reference** — it is no longer
-> wired to any page yet. The only route is `/` (`src/app/page.tsx`), a placeholder.
+> **The UI was reset** and is being rebuilt with **shadcn (Base UI)**. The business/data layer
+> (`src/services`, `src/store`, `src/features`, `src/hooks`, `src/router`) is preserved as a
+> working reference. **Authentication is the first rebuilt+wired feature** (see "Authentication"
+> below): routes are `/auth` (login, `src/app/auth/page.tsx`) and `/` (auth gate,
+> `src/app/page.tsx`). The preserved `auth.hooks.ts`/`auth.utils.ts` implicit-redirect helpers
+> are kept untouched as reference; the live auth uses new hooks.
 
 ## Toolchain (Bun)
 
@@ -38,13 +40,20 @@ bun run format:write   # prettier --write
 ```
 
 - **`bun run dev` serves over HTTPS** (`https://localhost:3000`) via `--experimental-https`. Certs
-  auto-generate into a gitignored dir on first run. HTTPS is required because Google/Apple OAuth
-  redirect URIs must be HTTPS. (Turbopack is the default bundler in Next 16; no `--turbopack` flag.)
+  auto-generate (mkcert) into the gitignored `certificates/` dir on first run. HTTPS is required
+  because Google/Apple OAuth need HTTPS. (Turbopack is the default bundler in Next 16; no
+  `--turbopack` flag.) **For Google sign-in, open the app at `https://local.maetry.com:3000`**
+  (map `127.0.0.1 local.maetry.com` in `/etc/hosts`) — that exact origin must be the Google OAuth
+  client's Authorized JavaScript origin; `localhost` is rejected by GIS. To get a cert whose SAN
+  covers it: `rm certificates/* && bun run dev -- -H local.maetry.com`.
 - **There is no test framework or tests.** No test script. Do not claim to "run the tests"; verify
   via `bun run build` + `bun run lint` and manual checks in the browser.
-- **Required env var: `NEXT_PUBLIC_API_BASE_URL`** — base URL of the Maestri API
-  (`src/services/maestri/reducer.ts`). `.env*` is gitignored and no example is committed; ask the
-  user for the value if API calls 404/fail.
+- **Env (`.env.local`, gitignored, no committed example — ask the user):**
+  `NEXT_PUBLIC_API_BASE_URL` = Maestri API **host root WITHOUT `/v1`** (generated URLs already
+  include `/v1`; a `/v1`-suffixed base → `/v1/v1/...` 404). `NEXT_PUBLIC_APP_URL` =
+  `https://local.maetry.com:3000`. `NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID` (required for Google).
+  `NEXT_PUBLIC_APPLE_OAUTH_CLIENT_ID` (commented out — Apple disabled, needs a real Apple
+  Services ID). Dev API base: `https://api-dev-601862402938.us-west2.run.app`.
 
 ## ESLint note (pinned to v9 on purpose)
 
@@ -110,8 +119,10 @@ logic) → consumed via RTK Query hooks; store wired in `src/store/index.ts`.
 
 - **Store** (`src/store/index.ts`): `makeStore()` combines the RTK Query api reducer +
   `workspace` + `schedules` slices, and prepends `listenerMiddleware` then `api.middleware`.
-  Provided to React in `src/app/store-provider.tsx` (still mounted in the root layout, so
-  `initializeApp` still runs even though no page consumes the data yet).
+  Provided to React in `src/app/store-provider.tsx`. **The `initializeApp` dispatch there is
+  commented out** (it eagerly fetched `getWorkspace` with no auth → noisy 401 on `/auth`); the
+  import and the `listenerMiddleware` listener are preserved for re-enablement by a future
+  post-login shell.
 - **App init** (`src/store/listenerMiddleware.ts`): on `initializeApp` it fetches `getWorkspace`,
   sets the first workspace as current if none selected, then fires `getUsers` and
   `getWorkspaceById`.
@@ -128,11 +139,40 @@ logic) → consumed via RTK Query hooks; store wired in `src/store/index.ts`.
     new shell must call it again for the employee token to refresh.)
   - Workspace selection: `src/features/workspace/` slice + hooks (`useCurrentWorkspace`,
     `useWorkspaceById`, `useWorkspaceSettings`).
-- **Auth flow (hooks only, not wired)**: `useAuthGate()` / `useOAuthCallback()` /
-  `useOAuthUrls()` in `src/features/auth/auth.hooks.ts` still implement the OAuth (Google + Apple)
-  gate and callback, but the pages that used them (`/`, `/auth`) were deleted. Reuse these hooks
-  when rebuilding auth. Route constants: `src/router/paths.ts` (`Path` enum) — note most `Path`
-  targets no longer have pages.
+- **Auth is rebuilt and wired** — see the "Authentication" section below. The preserved
+  `auth.hooks.ts` (`useAuthGate`/`useOAuthCallback`/`useOAuthUrls`, old implicit-redirect flow)
+  is **reference only**, not used by the live UI. Route constants: `src/router/paths.ts`
+  (`Path` enum).
+
+## Authentication
+
+The Maestri API exposes **only OAuth** — `POST /v1/auth/google`, `/v1/auth/apple` (+ `refresh`,
+`logout`). No password/OTP, no separate registration: both endpoints provision the account on
+first login, so **sign-in == sign-up, one page**.
+
+- **Routes**: `/auth` (single login page, `src/app/auth/page.tsx`) and `/` (auth gate,
+  `src/app/page.tsx` — redirects to `/auth` if no token, else validates via `GET /v1/users` and
+  shows a logout placeholder; no dashboard exists yet).
+- **Integration = Google Identity Services + Sign in with Apple JS** (ID token via JS callback,
+  no full-page redirect). New code, **layered over the preserved data layer** (generated
+  mutations, `authStorage`, `auth.types`); preserved implicit-redirect helpers untouched:
+  - `oauth.ts` — SDK loader, JWT decode, `Token{expiration}`→`TokenResponse{expiresIn}` map,
+    env getters. `use-oauth-providers.ts` — `useGoogleSignIn` (renders the GIS button),
+    `useAppleSignIn` (popup). `use-auth-session.ts` — `useAuthSession` (calls mutations, stores
+    tokens, redirects) + `useLogout` (dedicated `fetch` with the **refresh** token, since the
+    base query authorizes with the access token but `/v1/auth/logout` needs the refresh).
+    `oauth.globals.d.ts` — ambient `window.google`/`window.AppleID` types.
+- **Device-ID**: every request needs a `Device-ID` header that is a **valid UUID**
+  (`authStorage.initializeDeviceId()` generates it); a non-UUID is rejected as 401.
+- **Google needs console config**: `https://local.maetry.com:3000` must be an **Authorized
+  JavaScript origin** on the OAuth client — a *different field* from the redirect URI the old
+  web-next implicit flow used. Until added, GIS logs "The given origin is not allowed for the
+  given client ID" (proven for both `localhost:3000` and `local.maetry.com:3000`). Dev Google
+  client ID is reused from the old `web-next` project (same backend).
+- **Apple is disabled**: the button renders **disabled** with a caption. Needs a real Apple
+  **Services ID** (reverse-DNS, e.g. `com.maetry.web`) in `.env.local`
+  (`NEXT_PUBLIC_APPLE_OAUTH_CLIENT_ID`, commented out) + a Return URL registered in Apple
+  Developer. The web-next value was a Google-format ID and never worked for Apple JS.
 
 ## UI conventions (shadcn + Base UI)
 
@@ -176,9 +216,11 @@ Committed so the whole team's Claude Code gets them — **not** app code.
 - **MCP: Chrome DevTools** — project-scoped `.mcp.json` at repo root, server `chrome-devtools`
   (`npx -y chrome-devtools-mcp@latest`, official `ChromeDevTools/chrome-devtools-mcp`). `npx` (not
   bun) is the maintainer-documented invocation. Prereqs: Node ≥20.19 + Chrome installed. Project
-  `.mcp.json` servers prompt for approval on first use in Claude Code. Use it to drive/inspect the
-  app at **`https://localhost:3000`** (`bun run dev` is HTTPS; the self-signed cert may need
-  `--isolated`/accepting the cert). Optional flags: `--headless`, `--isolated`, `--slim`.
+  `.mcp.json` servers prompt for approval on first use in Claude Code. Drive/inspect the app at
+  **`https://local.maetry.com:3000`** (Google needs that origin). The MCP's Chrome ignores
+  self-signed-CA errors but **not** `ERR_CERT_COMMON_NAME_INVALID` — the cert SAN must include the
+  hostname, so run `rm certificates/* && bun run dev -- -H local.maetry.com` before driving it.
+  Optional flags: `--headless`, `--isolated`, `--slim`.
 
 ## Known gotchas
 
@@ -191,3 +233,7 @@ Committed so the whole team's Claude Code gets them — **not** app code.
   `.next/**/types`) — expect it to rewrite the file on build; don't fight it.
 - Git history is mostly `wip` commits; don't infer intent from messages.
 - `openapi.json`, `.env*`, and dev HTTPS certs are gitignored — absent on a fresh clone.
+- Google sign-in only works from `https://local.maetry.com:3000` (needs `127.0.0.1
+  local.maetry.com` in `/etc/hosts` + that exact origin on the Google client). Apple sign-in is
+  disabled until a real Apple Services ID exists. `initializeApp` is commented out in
+  `store-provider.tsx` (re-enable for the post-login shell).
