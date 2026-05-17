@@ -1,1356 +1,1572 @@
 import { api } from './reducer';
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    postAuthApple: build.mutation<PostAuthAppleApiResponse, PostAuthAppleApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/auth/apple`,
-        method: 'POST',
-        body: queryArg.authParametersAppleToken,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postAuthGoogle: build.mutation<PostAuthGoogleApiResponse, PostAuthGoogleApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/auth/google`,
-        method: 'POST',
-        body: queryArg.authParametersGoogleToken,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postAuthLogout: build.mutation<PostAuthLogoutApiResponse, PostAuthLogoutApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/auth/logout`,
-        method: 'POST',
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postAuthRefresh: build.mutation<PostAuthRefreshApiResponse, PostAuthRefreshApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/auth/refresh`,
-        method: 'POST',
-        body: queryArg.authParametersRefreshingToken,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postMeBookings: build.mutation<PostMeBookingsApiResponse, PostMeBookingsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/me/bookings`,
-        method: 'POST',
-        body: queryArg.visitParametersCreateBooking,
-      }),
-    }),
-    getMeVisits: build.query<GetMeVisitsApiResponse, GetMeVisitsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/me/visits`,
-        params: {
-          state: queryArg.state,
-        },
-      }),
-    }),
-    getMeVisitsById: build.query<GetMeVisitsByIdApiResponse, GetMeVisitsByIdApiArg>({
-      query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}` }),
-    }),
-    postMeVisitsByIdCancel: build.mutation<
-      PostMeVisitsByIdCancelApiResponse,
-      PostMeVisitsByIdCancelApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}/cancel`, method: 'POST' }),
-    }),
-    postMeVisitsByIdConfirm: build.mutation<
-      PostMeVisitsByIdConfirmApiResponse,
-      PostMeVisitsByIdConfirmApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}/confirm`, method: 'POST' }),
-    }),
-    postMeVisitsByIdEditServices: build.mutation<
-      PostMeVisitsByIdEditServicesApiResponse,
-      PostMeVisitsByIdEditServicesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/me/visits/${queryArg.id}/edit-services`,
-        method: 'POST',
-        body: queryArg.visitParametersEditServices,
-      }),
-    }),
-    postMeVisitsByIdEditClientNote: build.mutation<
-      PostMeVisitsByIdEditClientNoteApiResponse,
-      PostMeVisitsByIdEditClientNoteApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/me/visits/${queryArg.id}/edit-client-note`,
-        method: 'POST',
-        body: queryArg.visitParametersEditClientNote,
-      }),
-    }),
-    postMeVisitsByIdReschedule: build.mutation<
-      PostMeVisitsByIdRescheduleApiResponse,
-      PostMeVisitsByIdRescheduleApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/me/visits/${queryArg.id}/reschedule`,
-        method: 'POST',
-        body: queryArg.visitParametersReschedule,
-      }),
-    }),
-    postClicksBylinkIdBy: build.mutation<
-      PostClicksBylinkIdByApiResponse,
-      PostClicksBylinkIdByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/clicks/${queryArg.linkId}`,
-        method: 'POST',
-        body: queryArg.clickParametersMagicLink,
-      }),
-    }),
-    postClicksFind: build.mutation<PostClicksFindApiResponse, PostClicksFindApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/clicks/find`,
-        method: 'POST',
-        body: queryArg.clickParametersMagicLink,
-      }),
-    }),
-    postClicksFindBylinkIdBy: build.mutation<
-      PostClicksFindBylinkIdByApiResponse,
-      PostClicksFindBylinkIdByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/clicks/find/${queryArg.linkId}`,
-        method: 'POST',
-        body: queryArg.clickParametersMagicLink,
-      }),
-    }),
-    getClientModelProfile: build.query<
-      GetClientModelProfileApiResponse,
-      GetClientModelProfileApiArg
-    >({
-      query: () => ({ url: `/v1/client/model-profile` }),
-    }),
-    postClientModelProfile: build.mutation<
-      PostClientModelProfileApiResponse,
-      PostClientModelProfileApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/client/model-profile`,
-        method: 'POST',
-        body: queryArg.modelProfileParametersCreate,
-      }),
-    }),
-    putClientModelProfile: build.mutation<
-      PutClientModelProfileApiResponse,
-      PutClientModelProfileApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/client/model-profile`,
-        method: 'PUT',
-        body: queryArg.modelProfileParametersUpdate,
-      }),
-    }),
-    getCustomerContacts: build.query<GetCustomerContactsApiResponse, GetCustomerContactsApiArg>({
-      query: () => ({ url: `/v1/customer/contacts` }),
-    }),
-    postCustomerContacts: build.mutation<
-      PostCustomerContactsApiResponse,
-      PostCustomerContactsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/customer/contacts`,
-        method: 'POST',
-        body: queryArg.contactParametersCreateCommunication,
-      }),
-    }),
-    patchCustomerContactByContactId: build.mutation<
-      PatchCustomerContactByContactIdApiResponse,
-      PatchCustomerContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/customer/contacts/${queryArg.contactId}`,
-        method: 'PATCH',
-        body: queryArg.contactParametersPatchCommunication,
-      }),
-    }),
-    deleteCustomerContactByContactId: build.mutation<
-      DeleteCustomerContactByContactIdApiResponse,
-      DeleteCustomerContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/customer/contacts/${queryArg.contactId}`,
-        method: 'DELETE',
-      }),
-    }),
-    postDevices: build.mutation<PostDevicesApiResponse, PostDevicesApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/devices`,
-        method: 'POST',
-        body: queryArg.deviceParametersSystem,
-      }),
-    }),
-    getFavorites: build.query<GetFavoritesApiResponse, GetFavoritesApiArg>({
-      query: () => ({ url: `/v1/favorites` }),
-    }),
-    putFavoritesByIdAdd: build.mutation<PutFavoritesByIdAddApiResponse, PutFavoritesByIdAddApiArg>({
-      query: (queryArg) => ({ url: `/v1/favorites/${queryArg.id}/add`, method: 'PUT' }),
-    }),
-    putFavoritesByIdRemove: build.mutation<
-      PutFavoritesByIdRemoveApiResponse,
-      PutFavoritesByIdRemoveApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/favorites/${queryArg.id}/remove`, method: 'PUT' }),
-    }),
-    getInvitesClientBylinkIdByContacts: build.query<
-      GetInvitesClientBylinkIdByContactsApiResponse,
-      GetInvitesClientBylinkIdByContactsApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/invites/client/${queryArg.linkId}/contacts` }),
-    }),
-    postInvitesClientBylinkIdByMerge: build.mutation<
-      PostInvitesClientBylinkIdByMergeApiResponse,
-      PostInvitesClientBylinkIdByMergeApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/invites/client/${queryArg.linkId}/merge`,
-        method: 'POST',
-        body: queryArg.inviteClientParametersMerge,
-      }),
-    }),
-    putInvitesEmployeeBylinkIdBy: build.mutation<
-      PutInvitesEmployeeBylinkIdByApiResponse,
-      PutInvitesEmployeeBylinkIdByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/invites/employee/${queryArg.linkId}`, method: 'PUT' }),
-    }),
-    putInvitesSalonBylinkIdBy: build.mutation<
-      PutInvitesSalonBylinkIdByApiResponse,
-      PutInvitesSalonBylinkIdByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/invites/salon/${queryArg.linkId}`, method: 'PUT' }),
-    }),
-    getAcquisitionLeadSources: build.query<
-      GetAcquisitionLeadSourcesApiResponse,
-      GetAcquisitionLeadSourcesApiArg
-    >({
-      query: () => ({ url: `/v1/acquisition/lead-sources` }),
-    }),
-    postAcquisitionLeadSources: build.mutation<
-      PostAcquisitionLeadSourcesApiResponse,
-      PostAcquisitionLeadSourcesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources`,
-        method: 'POST',
-        body: queryArg.leadSourceParametersCreate,
-      }),
-    }),
-    getAcquisitionLeadSourcesByidBy: build.query<
-      GetAcquisitionLeadSourcesByidByApiResponse,
-      GetAcquisitionLeadSourcesByidByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}` }),
-    }),
-    putAcquisitionLeadSourcesByidBy: build.mutation<
-      PutAcquisitionLeadSourcesByidByApiResponse,
-      PutAcquisitionLeadSourcesByidByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.leadSourceParametersUpdate,
-      }),
-    }),
-    deleteAcquisitionLeadSourcesByidBy: build.mutation<
-      DeleteAcquisitionLeadSourcesByidByApiResponse,
-      DeleteAcquisitionLeadSourcesByidByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}`,
-        method: 'DELETE',
-      }),
-    }),
-    getAcquisitionLeadSourcesByidByStats: build.query<
-      GetAcquisitionLeadSourcesByidByStatsApiResponse,
-      GetAcquisitionLeadSourcesByidByStatsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}/stats`,
-        params: {
-          start: queryArg.start,
-          end: queryArg.end,
-        },
-      }),
-    }),
-    getAcquisitionStats: build.query<GetAcquisitionStatsApiResponse, GetAcquisitionStatsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/stats`,
-        params: {
-          start: queryArg.start,
-          end: queryArg.end,
-        },
-      }),
-    }),
-    getAcquisitionLeadSourcesByidByCampaign: build.query<
-      GetAcquisitionLeadSourcesByidByCampaignApiResponse,
-      GetAcquisitionLeadSourcesByidByCampaignApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign` }),
-    }),
-    putAcquisitionLeadSourcesByidByCampaign: build.mutation<
-      PutAcquisitionLeadSourcesByidByCampaignApiResponse,
-      PutAcquisitionLeadSourcesByidByCampaignApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign`,
-        method: 'PUT',
-        body: queryArg.leadSourceCampaignParametersUpdate,
-      }),
-    }),
-    postAcquisitionLeadSourcesByidByCampaignByEventManagerByManual: build.mutation<
-      PostAcquisitionLeadSourcesByidByCampaignByEventManagerByManualApiResponse,
-      PostAcquisitionLeadSourcesByidByCampaignByEventManagerByManualApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign/event-manager/manual`,
-        method: 'POST',
-        body: queryArg.manualEventManagerConnectParameters,
-      }),
-    }),
-    getAcquisitionLeadSourcesByidByPromoter: build.query<
-      GetAcquisitionLeadSourcesByidByPromoterApiResponse,
-      GetAcquisitionLeadSourcesByidByPromoterApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}/promoter` }),
-    }),
-    putAcquisitionLeadSourcesByidByPromoter: build.mutation<
-      PutAcquisitionLeadSourcesByidByPromoterApiResponse,
-      PutAcquisitionLeadSourcesByidByPromoterApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/acquisition/lead-sources/${queryArg.id}/promoter`,
-        method: 'PUT',
-        body: queryArg.promoterParametersUpdate,
-      }),
-    }),
-    getNotifications: build.query<GetNotificationsApiResponse, GetNotificationsApiArg>({
-      query: () => ({ url: `/v1/notifications` }),
-    }),
-    putNotificationsReaded: build.mutation<
-      PutNotificationsReadedApiResponse,
-      PutNotificationsReadedApiArg
-    >({
-      query: () => ({ url: `/v1/notifications/readed`, method: 'PUT' }),
-    }),
-    putNotificationsReadedById: build.mutation<
-      PutNotificationsReadedByIdApiResponse,
-      PutNotificationsReadedByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/notifications/readed/${queryArg.id}`, method: 'PUT' }),
-    }),
-    getBillingRedirect: build.query<GetBillingRedirectApiResponse, GetBillingRedirectApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/billing/redirect`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postBillingSessionResolve: build.mutation<
-      PostBillingSessionResolveApiResponse,
-      PostBillingSessionResolveApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/billing/session/resolve`,
-        method: 'POST',
-        body: queryArg.billingSessionResolveRequest,
-      }),
-    }),
-    getPublicVisitByBookingId: build.query<
-      GetPublicVisitByBookingIdApiResponse,
-      GetPublicVisitByBookingIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/public/booking/visits/${queryArg.id}` }),
-    }),
-    postPublicBookingBySalonId: build.mutation<
-      PostPublicBookingBySalonIdApiResponse,
-      PostPublicBookingBySalonIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/public/booking/salon/${queryArg.salonId}`,
-        method: 'POST',
-        body: queryArg.publicBookingParametersCreate,
-      }),
-    }),
-    getPublicBookingSalonCatalog: build.query<
-      GetPublicBookingSalonCatalogApiResponse,
-      GetPublicBookingSalonCatalogApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/catalog` }),
-    }),
-    getPublicBookingSalonMasters: build.query<
-      GetPublicBookingSalonMastersApiResponse,
-      GetPublicBookingSalonMastersApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/masters` }),
-    }),
-    getPublicBookingSalonProfile: build.query<
-      GetPublicBookingSalonProfileApiResponse,
-      GetPublicBookingSalonProfileApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/profile` }),
-    }),
-    getSalonBysalonIdByCatalog: build.query<
-      GetSalonBysalonIdByCatalogApiResponse,
-      GetSalonBysalonIdByCatalogApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/catalog` }),
-    }),
-    getSalonBysalonIdByMasters: build.query<
-      GetSalonBysalonIdByMastersApiResponse,
-      GetSalonBysalonIdByMastersApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/masters` }),
-    }),
-    getSalonBysalonIdByProfile: build.query<
-      GetSalonBysalonIdByProfileApiResponse,
-      GetSalonBysalonIdByProfileApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/profile` }),
-    }),
-    getSearch: build.query<GetSearchApiResponse, GetSearchApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/search`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceBillingPortalSession: build.mutation<
-      PostWorkspaceBillingPortalSessionApiResponse,
-      PostWorkspaceBillingPortalSessionApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/billing/portal-session`, method: 'POST' }),
-    }),
-    getWorkspaceBillingCatalog: build.query<
-      GetWorkspaceBillingCatalogApiResponse,
-      GetWorkspaceBillingCatalogApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/billing/catalog` }),
-    }),
-    postWorkspaceBillingSession: build.mutation<
-      PostWorkspaceBillingSessionApiResponse,
-      PostWorkspaceBillingSessionApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/billing/session`, method: 'POST' }),
-    }),
-    postWorkspaceBillingCheckoutSession: build.mutation<
-      PostWorkspaceBillingCheckoutSessionApiResponse,
-      PostWorkspaceBillingCheckoutSessionApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/billing/checkout-session`,
-        method: 'POST',
-        body: queryArg.billingCheckoutSessionRequest,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postWorkspaceBillingChangePlan: build.mutation<
-      PostWorkspaceBillingChangePlanApiResponse,
-      PostWorkspaceBillingChangePlanApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/billing/change-plan`,
-        method: 'POST',
-        body: queryArg.billingPlanChangeRequest,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    postWorkspaceBillingCancel: build.mutation<
-      PostWorkspaceBillingCancelApiResponse,
-      PostWorkspaceBillingCancelApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/billing/cancel`,
-        method: 'POST',
-        body: queryArg.billingSubscriptionCancelRequest,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    getWorkspaceBillingSummary: build.query<
-      GetWorkspaceBillingSummaryApiResponse,
-      GetWorkspaceBillingSummaryApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/billing/summary` }),
-    }),
-    postWorkspaceConnectOnboardingLink: build.mutation<
-      PostWorkspaceConnectOnboardingLinkApiResponse,
-      PostWorkspaceConnectOnboardingLinkApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/connect/onboarding-link`,
-        method: 'POST',
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    getWorkspaceConnectStatus: build.query<
-      GetWorkspaceConnectStatusApiResponse,
-      GetWorkspaceConnectStatusApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/connect/status` }),
-    }),
-    postTimetablesByOwnerByForce: build.mutation<
-      PostTimetablesByOwnerByForceApiResponse,
-      PostTimetablesByOwnerByForceApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/timetables/${queryArg.owner}/${queryArg.force}`,
-        method: 'POST',
-        body: queryArg.timetableParametersCreatePattern,
-      }),
-    }),
-    getTimetablesSchedules: build.query<
-      GetTimetablesSchedulesApiResponse,
-      GetTimetablesSchedulesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/timetables/schedules`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postTimetablesSearchSlots: build.mutation<
-      PostTimetablesSearchSlotsApiResponse,
-      PostTimetablesSearchSlotsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/timetables/search-slots`,
-        method: 'POST',
-        body: queryArg.body,
-        params: {
-          query: queryArg.query,
-        },
-      }),
-    }),
-    postUploadThumb: build.mutation<PostUploadThumbApiResponse, PostUploadThumbApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/upload/thumb`,
-        method: 'POST',
-        body: queryArg.uploadParametersThumb,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    deleteUsers: build.mutation<DeleteUsersApiResponse, DeleteUsersApiArg>({
-      query: () => ({ url: `/v1/users`, method: 'DELETE' }),
-    }),
-    getUsers: build.query<GetUsersApiResponse, GetUsersApiArg>({
-      query: () => ({ url: `/v1/users` }),
-    }),
-    putUsers: build.mutation<PutUsersApiResponse, PutUsersApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/users`,
-        method: 'PUT',
-        body: queryArg.userParametersPatch,
-      }),
-    }),
-    getUserRecoveryMethods: build.query<
-      GetUserRecoveryMethodsApiResponse,
-      GetUserRecoveryMethodsApiArg
-    >({
-      query: () => ({ url: `/v1/users/me/recovery-contacts` }),
-    }),
-    postUserRecoveryMethods: build.mutation<
-      PostUserRecoveryMethodsApiResponse,
-      PostUserRecoveryMethodsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/users/me/recovery-contacts`,
-        method: 'POST',
-        body: queryArg.recoveryParametersCreateMethod,
-      }),
-    }),
-    patchUserRecoveryMethodByRecoveryMethodId: build.mutation<
-      PatchUserRecoveryMethodByRecoveryMethodIdApiResponse,
-      PatchUserRecoveryMethodByRecoveryMethodIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/users/me/recovery-contacts/${queryArg.recoveryMethodId}`,
-        method: 'PATCH',
-        body: queryArg.recoveryParametersPatchMethod,
-      }),
-    }),
-    deleteUserRecoveryMethodByRecoveryMethodId: build.mutation<
-      DeleteUserRecoveryMethodByRecoveryMethodIdApiResponse,
-      DeleteUserRecoveryMethodByRecoveryMethodIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/users/me/recovery-contacts/${queryArg.recoveryMethodId}`,
-        method: 'DELETE',
-      }),
-    }),
-    postUsersCustomer: build.mutation<PostUsersCustomerApiResponse, PostUsersCustomerApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/users/customer`,
-        method: 'POST',
-        body: queryArg.customerParametersRegistration,
-      }),
-    }),
-    downloadAppleWalletBookingPass: build.query<
-      DownloadAppleWalletBookingPassApiResponse,
-      DownloadAppleWalletBookingPassApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/wallet/apple/booking/${queryArg.id}` }),
-    }),
-    getWalletGoogleBookingByidBy: build.query<
-      GetWalletGoogleBookingByidByApiResponse,
-      GetWalletGoogleBookingByidByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/wallet/google/booking/${queryArg.id}` }),
-    }),
-    deleteWorkspace: build.mutation<DeleteWorkspaceApiResponse, DeleteWorkspaceApiArg>({
-      query: () => ({ url: `/v1/workspace`, method: 'DELETE' }),
-    }),
-    getWorkspace: build.query<GetWorkspaceApiResponse, GetWorkspaceApiArg>({
-      query: () => ({ url: `/v1/workspace` }),
-    }),
-    postWorkspace: build.mutation<PostWorkspaceApiResponse, PostWorkspaceApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace`,
-        method: 'POST',
-        body: queryArg.workspaceParametersCreate,
-      }),
-    }),
-    putWorkspace: build.mutation<PutWorkspaceApiResponse, PutWorkspaceApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace`,
-        method: 'PUT',
-        body: queryArg.workspaceParametersPatch,
-      }),
-    }),
-    getWorkspaceById: build.query<GetWorkspaceByIdApiResponse, GetWorkspaceByIdApiArg>({
-      query: (queryArg) => ({ url: `/v1/workspace/${queryArg.id}` }),
-    }),
-    putWorkspaceActivate: build.mutation<
-      PutWorkspaceActivateApiResponse,
-      PutWorkspaceActivateApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/activate`, method: 'PUT' }),
-    }),
-    postWorkspaceAppointmentStart: build.mutation<
-      PostWorkspaceAppointmentStartApiResponse,
-      PostWorkspaceAppointmentStartApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/appointments/${queryArg.appointmentId}/start`,
-        method: 'POST',
-        body: queryArg.workspaceAppointmentParametersStart,
-      }),
-    }),
-    postWorkspaceAppointmentComplete: build.mutation<
-      PostWorkspaceAppointmentCompleteApiResponse,
-      PostWorkspaceAppointmentCompleteApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/appointments/${queryArg.appointmentId}/complete`,
-        method: 'POST',
-        body: queryArg.workspaceAppointmentParametersComplete,
-      }),
-    }),
-    postWorkspaceAppointmentNoShow: build.mutation<
-      PostWorkspaceAppointmentNoShowApiResponse,
-      PostWorkspaceAppointmentNoShowApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/appointments/${queryArg.appointmentId}/no-show`,
-        method: 'POST',
-        body: queryArg.workspaceAppointmentParametersNoShow,
-      }),
-    }),
-    getWorkspaceBookings: build.query<GetWorkspaceBookingsApiResponse, GetWorkspaceBookingsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings`,
-        params: {
-          state: queryArg.state,
-        },
-      }),
-    }),
-    postWorkspaceBookings: build.mutation<
-      PostWorkspaceBookingsApiResponse,
-      PostWorkspaceBookingsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings`,
-        method: 'POST',
-        body: queryArg.workspaceBookingParametersCreate,
-        headers: {
-          'Idempotency-Key': queryArg['Idempotency-Key'],
-        },
-      }),
-    }),
-    getWorkspaceBookingById: build.query<
-      GetWorkspaceBookingByIdApiResponse,
-      GetWorkspaceBookingByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/bookings/${queryArg.bookingId}` }),
-    }),
-    postWorkspaceBookingApprove: build.mutation<
-      PostWorkspaceBookingApproveApiResponse,
-      PostWorkspaceBookingApproveApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/approve`,
-        method: 'POST',
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    postWorkspaceBookingReject: build.mutation<
-      PostWorkspaceBookingRejectApiResponse,
-      PostWorkspaceBookingRejectApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/reject`,
-        method: 'POST',
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    postWorkspaceBookingCancel: build.mutation<
-      PostWorkspaceBookingCancelApiResponse,
-      PostWorkspaceBookingCancelApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/cancel`,
-        method: 'POST',
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    postWorkspaceBookingReschedule: build.mutation<
-      PostWorkspaceBookingRescheduleApiResponse,
-      PostWorkspaceBookingRescheduleApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/reschedule`,
-        method: 'POST',
-        body: queryArg.workspaceBookingParametersReschedule,
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    postWorkspaceBookingEditServices: build.mutation<
-      PostWorkspaceBookingEditServicesApiResponse,
-      PostWorkspaceBookingEditServicesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/edit-services`,
-        method: 'POST',
-        body: queryArg.workspaceBookingParametersEditServices,
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    postWorkspaceBookingAddStaffNode: build.mutation<
-      PostWorkspaceBookingAddStaffNodeApiResponse,
-      PostWorkspaceBookingAddStaffNodeApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/bookings/${queryArg.bookingId}/add-staff-node`,
-        method: 'POST',
-        body: queryArg.workspaceBookingParametersAddStaffNode,
-        headers: {
-          'If-Match': queryArg['If-Match'],
-        },
-      }),
-    }),
-    getWorkspaceClients: build.query<GetWorkspaceClientsApiResponse, GetWorkspaceClientsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceClients: build.mutation<
-      PostWorkspaceClientsApiResponse,
-      PostWorkspaceClientsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients`,
-        method: 'POST',
-        body: queryArg.clientParametersCreate,
-      }),
-    }),
-    getWorkspaceClientsById: build.query<
-      GetWorkspaceClientsByIdApiResponse,
-      GetWorkspaceClientsByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.id}` }),
-    }),
-    putWorkspaceClientsById: build.mutation<
-      PutWorkspaceClientsByIdApiResponse,
-      PutWorkspaceClientsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.clientParametersPatch,
-      }),
-    }),
-    getWorkspaceClientContacts: build.query<
-      GetWorkspaceClientContactsApiResponse,
-      GetWorkspaceClientContactsApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.clientId}/contacts` }),
-    }),
-    postWorkspaceClientContacts: build.mutation<
-      PostWorkspaceClientContactsApiResponse,
-      PostWorkspaceClientContactsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients/${queryArg.clientId}/contacts`,
-        method: 'POST',
-        body: queryArg.contactParametersCreateCommunication,
-      }),
-    }),
-    patchWorkspaceClientContactByContactId: build.mutation<
-      PatchWorkspaceClientContactByContactIdApiResponse,
-      PatchWorkspaceClientContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients/${queryArg.clientId}/contacts/${queryArg.contactId}`,
-        method: 'PATCH',
-        body: queryArg.contactParametersPatchCommunication,
-      }),
-    }),
-    deleteWorkspaceClientContactByContactId: build.mutation<
-      DeleteWorkspaceClientContactByContactIdApiResponse,
-      DeleteWorkspaceClientContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients/${queryArg.clientId}/contacts/${queryArg.contactId}`,
-        method: 'DELETE',
-      }),
-    }),
-    getWorkspaceClientsByIdByLinkCandidates: build.query<
-      GetWorkspaceClientsByIdByLinkCandidatesApiResponse,
-      GetWorkspaceClientsByIdByLinkCandidatesApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.id}/link-candidates` }),
-    }),
-    postWorkspaceClientsByIdByLinks: build.mutation<
-      PostWorkspaceClientsByIdByLinksApiResponse,
-      PostWorkspaceClientsByIdByLinksApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/clients/${queryArg.id}/links`,
-        method: 'POST',
-        body: queryArg.clientParametersCreateLink,
-      }),
-    }),
-    getWorkspaceComplex: build.query<GetWorkspaceComplexApiResponse, GetWorkspaceComplexApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace/complex`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceComplex: build.mutation<
-      PostWorkspaceComplexApiResponse,
-      PostWorkspaceComplexApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/complex`,
-        method: 'POST',
-        body: queryArg.complexParametersCreate,
-      }),
-    }),
-    deleteWorkspaceComplexById: build.mutation<
-      DeleteWorkspaceComplexByIdApiResponse,
-      DeleteWorkspaceComplexByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/complex/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspaceComplexById: build.query<
-      GetWorkspaceComplexByIdApiResponse,
-      GetWorkspaceComplexByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/complex/${queryArg.id}` }),
-    }),
-    putWorkspaceComplexById: build.mutation<
-      PutWorkspaceComplexByIdApiResponse,
-      PutWorkspaceComplexByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/complex/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.complexParametersUpdate,
-      }),
-    }),
-    postWorkspaceImportedSalonsPreview: build.mutation<
-      PostWorkspaceImportedSalonsPreviewApiResponse,
-      PostWorkspaceImportedSalonsPreviewApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/imported-salons/preview`,
-        method: 'POST',
-        body: queryArg.importedSalonPreviewRequest,
-      }),
-    }),
-    postWorkspaceImportedSalonsCommit: build.mutation<
-      PostWorkspaceImportedSalonsCommitApiResponse,
-      PostWorkspaceImportedSalonsCommitApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/imported-salons/commit`,
-        method: 'POST',
-        body: queryArg.importedSalonCommitRequest,
-      }),
-    }),
-    postWorkspaceImportedSalonsClaimLink: build.mutation<
-      PostWorkspaceImportedSalonsClaimLinkApiResponse,
-      PostWorkspaceImportedSalonsClaimLinkApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/imported-salons/${queryArg.id}/claim-link`,
-        method: 'POST',
-        body: queryArg.importedSalonClaimLinkRequest,
-      }),
-    }),
-    putWorkspaceDeactivate: build.mutation<
-      PutWorkspaceDeactivateApiResponse,
-      PutWorkspaceDeactivateApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/deactivate`, method: 'PUT' }),
-    }),
-    getWorkspaceEmployeeContacts: build.query<
-      GetWorkspaceEmployeeContactsApiResponse,
-      GetWorkspaceEmployeeContactsApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.employeeId}/contacts` }),
-    }),
-    postWorkspaceEmployeeContacts: build.mutation<
-      PostWorkspaceEmployeeContactsApiResponse,
-      PostWorkspaceEmployeeContactsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees/${queryArg.employeeId}/contacts`,
-        method: 'POST',
-        body: queryArg.contactParametersCreateCommunication,
-      }),
-    }),
-    patchWorkspaceEmployeeContactByContactId: build.mutation<
-      PatchWorkspaceEmployeeContactByContactIdApiResponse,
-      PatchWorkspaceEmployeeContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees/${queryArg.employeeId}/contacts/${queryArg.contactId}`,
-        method: 'PATCH',
-        body: queryArg.contactParametersPatchCommunication,
-      }),
-    }),
-    deleteWorkspaceEmployeeContactByContactId: build.mutation<
-      DeleteWorkspaceEmployeeContactByContactIdApiResponse,
-      DeleteWorkspaceEmployeeContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees/${queryArg.employeeId}/contacts/${queryArg.contactId}`,
-        method: 'DELETE',
-      }),
-    }),
-    getWorkspaceEmployees: build.query<
-      GetWorkspaceEmployeesApiResponse,
-      GetWorkspaceEmployeesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    deleteWorkspaceEmployeesById: build.mutation<
-      DeleteWorkspaceEmployeesByIdApiResponse,
-      DeleteWorkspaceEmployeesByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspaceEmployeesById: build.query<
-      GetWorkspaceEmployeesByIdApiResponse,
-      GetWorkspaceEmployeesByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.id}` }),
-    }),
-    putWorkspaceEmployeesById: build.mutation<
-      PutWorkspaceEmployeesByIdApiResponse,
-      PutWorkspaceEmployeesByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.employeeParametersPatch,
-      }),
-    }),
-    getWorkspaceEmployeesCredentials: build.query<
-      GetWorkspaceEmployeesCredentialsApiResponse,
-      GetWorkspaceEmployeesCredentialsApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/employees/credentials` }),
-    }),
-    postWorkspaceEmployeesInvite: build.mutation<
-      PostWorkspaceEmployeesInviteApiResponse,
-      PostWorkspaceEmployeesInviteApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/employees/invite`,
-        method: 'POST',
-        body: queryArg.employeeParametersInvite,
-      }),
-    }),
-    getWorkspaceSalonContacts: build.query<
-      GetWorkspaceSalonContactsApiResponse,
-      GetWorkspaceSalonContactsApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/salons/${queryArg.salonId}/contacts` }),
-    }),
-    postWorkspaceSalonContacts: build.mutation<
-      PostWorkspaceSalonContactsApiResponse,
-      PostWorkspaceSalonContactsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/salons/${queryArg.salonId}/contacts`,
-        method: 'POST',
-        body: queryArg.contactParametersCreateCommunication,
-      }),
-    }),
-    patchWorkspaceSalonContactByContactId: build.mutation<
-      PatchWorkspaceSalonContactByContactIdApiResponse,
-      PatchWorkspaceSalonContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/salons/${queryArg.salonId}/contacts/${queryArg.contactId}`,
-        method: 'PATCH',
-        body: queryArg.contactParametersPatchCommunication,
-      }),
-    }),
-    deleteWorkspaceSalonContactByContactId: build.mutation<
-      DeleteWorkspaceSalonContactByContactIdApiResponse,
-      DeleteWorkspaceSalonContactByContactIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/salons/${queryArg.salonId}/contacts/${queryArg.contactId}`,
-        method: 'DELETE',
-      }),
-    }),
-    getWorkspaceNotifications: build.query<
-      GetWorkspaceNotificationsApiResponse,
-      GetWorkspaceNotificationsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/notifications`,
-        params: {
-          limit: queryArg.limit,
-          cursor: queryArg.cursor,
-        },
-      }),
-    }),
-    putWorkspaceNotificationsReaded: build.mutation<
-      PutWorkspaceNotificationsReadedApiResponse,
-      PutWorkspaceNotificationsReadedApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/notifications/readed`, method: 'PUT' }),
-    }),
-    putWorkspaceNotificationsReadedById: build.mutation<
-      PutWorkspaceNotificationsReadedByIdApiResponse,
-      PutWorkspaceNotificationsReadedByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/notifications/readed/${queryArg.id}`,
-        method: 'PUT',
-      }),
-    }),
-    deleteWorkspaceOfftimeById: build.mutation<
-      DeleteWorkspaceOfftimeByIdApiResponse,
-      DeleteWorkspaceOfftimeByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/offtime/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspaceOfftimeByOwner: build.query<
-      GetWorkspaceOfftimeByOwnerApiResponse,
-      GetWorkspaceOfftimeByOwnerApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/offtime/owner/${queryArg.owner}` }),
-    }),
-    postWorkspaceOfftimeByOwner: build.mutation<
-      PostWorkspaceOfftimeByOwnerApiResponse,
-      PostWorkspaceOfftimeByOwnerApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/offtime/owner/${queryArg.owner}`,
-        method: 'POST',
-        body: queryArg.offtimeParametersCreate,
-      }),
-    }),
-    getWorkspacePositions: build.query<
-      GetWorkspacePositionsApiResponse,
-      GetWorkspacePositionsApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/positions` }),
-    }),
-    postWorkspacePositions: build.mutation<
-      PostWorkspacePositionsApiResponse,
-      PostWorkspacePositionsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/positions`,
-        method: 'POST',
-        body: queryArg.positionParametersCreate,
-      }),
-    }),
-    deleteWorkspacePositionsById: build.mutation<
-      DeleteWorkspacePositionsByIdApiResponse,
-      DeleteWorkspacePositionsByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/positions/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspacePositionsById: build.query<
-      GetWorkspacePositionsByIdApiResponse,
-      GetWorkspacePositionsByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/positions/${queryArg.id}` }),
-    }),
-    putWorkspacePositionsById: build.mutation<
-      PutWorkspacePositionsByIdApiResponse,
-      PutWorkspacePositionsByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/positions/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.positionParametersPatch,
-      }),
-    }),
-    getWorkspaceProcedures: build.query<
-      GetWorkspaceProceduresApiResponse,
-      GetWorkspaceProceduresApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceProcedures: build.mutation<
-      PostWorkspaceProceduresApiResponse,
-      PostWorkspaceProceduresApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures`,
-        method: 'POST',
-        body: queryArg.procedureParametersCreate,
-      }),
-    }),
-    deleteWorkspaceProceduresById: build.mutation<
-      DeleteWorkspaceProceduresByIdApiResponse,
-      DeleteWorkspaceProceduresByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/procedures/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspaceProceduresById: build.query<
-      GetWorkspaceProceduresByIdApiResponse,
-      GetWorkspaceProceduresByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/procedures/${queryArg.id}` }),
-    }),
-    putWorkspaceProceduresById: build.mutation<
-      PutWorkspaceProceduresByIdApiResponse,
-      PutWorkspaceProceduresByIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.procedureParametersUpdate,
-      }),
-    }),
-    patchWorkspaceProceduresByIdSettings: build.mutation<
-      PatchWorkspaceProceduresByIdSettingsApiResponse,
-      PatchWorkspaceProceduresByIdSettingsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/settings`,
-        method: 'PATCH',
-        body: queryArg.procedureParametersPatchSettings,
-      }),
-    }),
-    postWorkspaceProceduresByIdArchive: build.mutation<
-      PostWorkspaceProceduresByIdArchiveApiResponse,
-      PostWorkspaceProceduresByIdArchiveApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/archive`,
-        method: 'POST',
-      }),
-    }),
-    postWorkspaceProceduresByIdRestore: build.mutation<
-      PostWorkspaceProceduresByIdRestoreApiResponse,
-      PostWorkspaceProceduresByIdRestoreApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/restore`,
-        method: 'POST',
-      }),
-    }),
-    getWorkspaceProceduresByIdExecutionsByExecutionId: build.query<
-      GetWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
-      GetWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
-      }),
-    }),
-    patchWorkspaceProceduresByIdExecutionsByExecutionId: build.mutation<
-      PatchWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
-      PatchWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
-        method: 'PATCH',
-        body: queryArg.procedureExecutionParametersPatch,
-      }),
-    }),
-    deleteWorkspaceProceduresByIdExecutionsByExecutionId: build.mutation<
-      DeleteWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
-      DeleteWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
-        method: 'DELETE',
-      }),
-    }),
-    getWorkspaceProducts: build.query<GetWorkspaceProductsApiResponse, GetWorkspaceProductsApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace/products`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceProducts: build.mutation<
-      PostWorkspaceProductsApiResponse,
-      PostWorkspaceProductsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/products`,
-        method: 'POST',
-        body: queryArg.productParametersCreate,
-      }),
-    }),
-    deleteWorkspaceProductsByidBy: build.mutation<
-      DeleteWorkspaceProductsByidByApiResponse,
-      DeleteWorkspaceProductsByidByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/products/${queryArg.id}`, method: 'DELETE' }),
-    }),
-    getWorkspaceProductsByidBy: build.query<
-      GetWorkspaceProductsByidByApiResponse,
-      GetWorkspaceProductsByidByApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/products/${queryArg.id}` }),
-    }),
-    putWorkspaceProductsByidBy: build.mutation<
-      PutWorkspaceProductsByidByApiResponse,
-      PutWorkspaceProductsByidByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/products/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.productParametersUpdate,
-      }),
-    }),
-    getWorkspaceProductsByidByStockAdjustments: build.query<
-      GetWorkspaceProductsByidByStockAdjustmentsApiResponse,
-      GetWorkspaceProductsByidByStockAdjustmentsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/products/${queryArg.id}/stock-adjustments`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceProductsByidByStockAdjustments: build.mutation<
-      PostWorkspaceProductsByidByStockAdjustmentsApiResponse,
-      PostWorkspaceProductsByidByStockAdjustmentsApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/products/${queryArg.id}/stock-adjustments`,
-        method: 'POST',
-        body: queryArg.productStockAdjustmentParametersCreate,
-      }),
-    }),
-    getWorkspaceProductsOptions: build.query<
-      GetWorkspaceProductsOptionsApiResponse,
-      GetWorkspaceProductsOptionsApiArg
-    >({
-      query: () => ({ url: `/v1/workspace/products/options` }),
-    }),
-    getWorkspaceServices: build.query<GetWorkspaceServicesApiResponse, GetWorkspaceServicesApiArg>({
-      query: (queryArg) => ({
-        url: `/v1/workspace/services`,
-        params: {
-          parameters: queryArg.parameters,
-        },
-      }),
-    }),
-    postWorkspaceServices: build.mutation<
-      PostWorkspaceServicesApiResponse,
-      PostWorkspaceServicesApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/services`,
-        method: 'POST',
-        body: queryArg.serviceParametersCreate,
-      }),
-    }),
-    getWorkspaceServicesById: build.query<
-      GetWorkspaceServicesByIdApiResponse,
-      GetWorkspaceServicesByIdApiArg
-    >({
-      query: (queryArg) => ({ url: `/v1/workspace/services/${queryArg.id}` }),
-    }),
-    putWorkspaceServicesByidBy: build.mutation<
-      PutWorkspaceServicesByidByApiResponse,
-      PutWorkspaceServicesByidByApiArg
-    >({
-      query: (queryArg) => ({
-        url: `/v1/workspace/services/${queryArg.id}`,
-        method: 'PUT',
-        body: queryArg.serviceParametersUpdate,
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
+export const addTagTypes = [
+  'Auth',
+  'Visit',
+  'Click',
+  'ModelProfile',
+  'Contacts',
+  'Device',
+  'Favorites',
+  'Invite',
+  'Employees',
+  'Acquisition',
+  'Customer Notification',
+  'Billing',
+  'Public',
+  'Catalog',
+  'Masters',
+  'Salons',
+  'Search',
+  'Connect',
+  'Schedule',
+  'Upload',
+  'Users',
+  'Recovery',
+  'WalletPass',
+  'Workspaces',
+  'Appointment',
+  'Booking',
+  'Clients',
+  'Complex',
+  'Notifications',
+  'Offtime',
+  'Positions',
+  'Procedures',
+  'Products',
+  'Services',
+] as const;
+const injectedRtkApi = api
+  .enhanceEndpoints({
+    addTagTypes,
+  })
+  .injectEndpoints({
+    endpoints: (build) => ({
+      postAuthApple: build.mutation<PostAuthAppleApiResponse, PostAuthAppleApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/auth/apple`,
+          method: 'POST',
+          body: queryArg.authParametersAppleToken,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Auth'],
+      }),
+      postAuthGoogle: build.mutation<PostAuthGoogleApiResponse, PostAuthGoogleApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/auth/google`,
+          method: 'POST',
+          body: queryArg.authParametersGoogleToken,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Auth'],
+      }),
+      postAuthLogout: build.mutation<PostAuthLogoutApiResponse, PostAuthLogoutApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/auth/logout`,
+          method: 'POST',
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Auth'],
+      }),
+      postAuthRefresh: build.mutation<PostAuthRefreshApiResponse, PostAuthRefreshApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/auth/refresh`,
+          method: 'POST',
+          body: queryArg.authParametersRefreshingToken,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Auth'],
+      }),
+      postMeBookings: build.mutation<PostMeBookingsApiResponse, PostMeBookingsApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/me/bookings`,
+          method: 'POST',
+          body: queryArg.visitParametersCreateBooking,
+        }),
+        invalidatesTags: ['Visit'],
+      }),
+      getMeVisits: build.query<GetMeVisitsApiResponse, GetMeVisitsApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/me/visits`,
+          params: {
+            state: queryArg.state,
+          },
+        }),
+        providesTags: ['Visit'],
+      }),
+      getMeVisitsById: build.query<GetMeVisitsByIdApiResponse, GetMeVisitsByIdApiArg>({
+        query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}` }),
+        providesTags: ['Visit'],
+      }),
+      postMeVisitsByIdCancel: build.mutation<
+        PostMeVisitsByIdCancelApiResponse,
+        PostMeVisitsByIdCancelApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}/cancel`, method: 'POST' }),
+        invalidatesTags: ['Visit'],
+      }),
+      postMeVisitsByIdConfirm: build.mutation<
+        PostMeVisitsByIdConfirmApiResponse,
+        PostMeVisitsByIdConfirmApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/me/visits/${queryArg.id}/confirm`, method: 'POST' }),
+        invalidatesTags: ['Visit'],
+      }),
+      postMeVisitsByIdEditServices: build.mutation<
+        PostMeVisitsByIdEditServicesApiResponse,
+        PostMeVisitsByIdEditServicesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/me/visits/${queryArg.id}/edit-services`,
+          method: 'POST',
+          body: queryArg.visitParametersEditServices,
+        }),
+        invalidatesTags: ['Visit'],
+      }),
+      postMeVisitsByIdEditClientNote: build.mutation<
+        PostMeVisitsByIdEditClientNoteApiResponse,
+        PostMeVisitsByIdEditClientNoteApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/me/visits/${queryArg.id}/edit-client-note`,
+          method: 'POST',
+          body: queryArg.visitParametersEditClientNote,
+        }),
+        invalidatesTags: ['Visit'],
+      }),
+      postMeVisitsByIdReschedule: build.mutation<
+        PostMeVisitsByIdRescheduleApiResponse,
+        PostMeVisitsByIdRescheduleApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/me/visits/${queryArg.id}/reschedule`,
+          method: 'POST',
+          body: queryArg.visitParametersReschedule,
+        }),
+        invalidatesTags: ['Visit'],
+      }),
+      postClicksBylinkIdBy: build.mutation<
+        PostClicksBylinkIdByApiResponse,
+        PostClicksBylinkIdByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/clicks/${queryArg.linkId}`,
+          method: 'POST',
+          body: queryArg.clickParametersMagicLink,
+        }),
+        invalidatesTags: ['Click'],
+      }),
+      postClicksFind: build.mutation<PostClicksFindApiResponse, PostClicksFindApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/clicks/find`,
+          method: 'POST',
+          body: queryArg.clickParametersMagicLink,
+        }),
+        invalidatesTags: ['Click'],
+      }),
+      postClicksFindBylinkIdBy: build.mutation<
+        PostClicksFindBylinkIdByApiResponse,
+        PostClicksFindBylinkIdByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/clicks/find/${queryArg.linkId}`,
+          method: 'POST',
+          body: queryArg.clickParametersMagicLink,
+        }),
+        invalidatesTags: ['Click'],
+      }),
+      getClientModelProfile: build.query<
+        GetClientModelProfileApiResponse,
+        GetClientModelProfileApiArg
+      >({
+        query: () => ({ url: `/v1/client/model-profile` }),
+        providesTags: ['ModelProfile'],
+      }),
+      postClientModelProfile: build.mutation<
+        PostClientModelProfileApiResponse,
+        PostClientModelProfileApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/client/model-profile`,
+          method: 'POST',
+          body: queryArg.modelProfileParametersCreate,
+        }),
+        invalidatesTags: ['ModelProfile'],
+      }),
+      putClientModelProfile: build.mutation<
+        PutClientModelProfileApiResponse,
+        PutClientModelProfileApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/client/model-profile`,
+          method: 'PUT',
+          body: queryArg.modelProfileParametersUpdate,
+        }),
+        invalidatesTags: ['ModelProfile'],
+      }),
+      getCustomerContacts: build.query<GetCustomerContactsApiResponse, GetCustomerContactsApiArg>({
+        query: () => ({ url: `/v1/customer/contacts` }),
+        providesTags: ['Contacts'],
+      }),
+      postCustomerContacts: build.mutation<
+        PostCustomerContactsApiResponse,
+        PostCustomerContactsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/customer/contacts`,
+          method: 'POST',
+          body: queryArg.contactParametersCreateCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      patchCustomerContactByContactId: build.mutation<
+        PatchCustomerContactByContactIdApiResponse,
+        PatchCustomerContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/customer/contacts/${queryArg.contactId}`,
+          method: 'PATCH',
+          body: queryArg.contactParametersPatchCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      deleteCustomerContactByContactId: build.mutation<
+        DeleteCustomerContactByContactIdApiResponse,
+        DeleteCustomerContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/customer/contacts/${queryArg.contactId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      postDevices: build.mutation<PostDevicesApiResponse, PostDevicesApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/devices`,
+          method: 'POST',
+          body: queryArg.deviceParametersSystem,
+        }),
+        invalidatesTags: ['Device'],
+      }),
+      getFavorites: build.query<GetFavoritesApiResponse, GetFavoritesApiArg>({
+        query: () => ({ url: `/v1/favorites` }),
+        providesTags: ['Favorites'],
+      }),
+      putFavoritesByIdAdd: build.mutation<
+        PutFavoritesByIdAddApiResponse,
+        PutFavoritesByIdAddApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/favorites/${queryArg.id}/add`, method: 'PUT' }),
+        invalidatesTags: ['Favorites'],
+      }),
+      putFavoritesByIdRemove: build.mutation<
+        PutFavoritesByIdRemoveApiResponse,
+        PutFavoritesByIdRemoveApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/favorites/${queryArg.id}/remove`, method: 'PUT' }),
+        invalidatesTags: ['Favorites'],
+      }),
+      getInvitesClientBylinkIdByContacts: build.query<
+        GetInvitesClientBylinkIdByContactsApiResponse,
+        GetInvitesClientBylinkIdByContactsApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/invites/client/${queryArg.linkId}/contacts` }),
+        providesTags: ['Invite'],
+      }),
+      postInvitesClientBylinkIdByMerge: build.mutation<
+        PostInvitesClientBylinkIdByMergeApiResponse,
+        PostInvitesClientBylinkIdByMergeApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/invites/client/${queryArg.linkId}/merge`,
+          method: 'POST',
+          body: queryArg.inviteClientParametersMerge,
+        }),
+        invalidatesTags: ['Invite'],
+      }),
+      putInvitesEmployeeBylinkIdBy: build.mutation<
+        PutInvitesEmployeeBylinkIdByApiResponse,
+        PutInvitesEmployeeBylinkIdByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/invites/employee/${queryArg.linkId}`, method: 'PUT' }),
+        invalidatesTags: ['Employees'],
+      }),
+      putInvitesSalonBylinkIdBy: build.mutation<
+        PutInvitesSalonBylinkIdByApiResponse,
+        PutInvitesSalonBylinkIdByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/invites/salon/${queryArg.linkId}`, method: 'PUT' }),
+        invalidatesTags: ['Invite'],
+      }),
+      getAcquisitionLeadSources: build.query<
+        GetAcquisitionLeadSourcesApiResponse,
+        GetAcquisitionLeadSourcesApiArg
+      >({
+        query: () => ({ url: `/v1/acquisition/lead-sources` }),
+        providesTags: ['Acquisition'],
+      }),
+      postAcquisitionLeadSources: build.mutation<
+        PostAcquisitionLeadSourcesApiResponse,
+        PostAcquisitionLeadSourcesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources`,
+          method: 'POST',
+          body: queryArg.leadSourceParametersCreate,
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      getAcquisitionLeadSourcesByidBy: build.query<
+        GetAcquisitionLeadSourcesByidByApiResponse,
+        GetAcquisitionLeadSourcesByidByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}` }),
+        providesTags: ['Acquisition'],
+      }),
+      putAcquisitionLeadSourcesByidBy: build.mutation<
+        PutAcquisitionLeadSourcesByidByApiResponse,
+        PutAcquisitionLeadSourcesByidByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.leadSourceParametersUpdate,
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      deleteAcquisitionLeadSourcesByidBy: build.mutation<
+        DeleteAcquisitionLeadSourcesByidByApiResponse,
+        DeleteAcquisitionLeadSourcesByidByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      getAcquisitionLeadSourcesByidByStats: build.query<
+        GetAcquisitionLeadSourcesByidByStatsApiResponse,
+        GetAcquisitionLeadSourcesByidByStatsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}/stats`,
+          params: {
+            start: queryArg.start,
+            end: queryArg.end,
+          },
+        }),
+        providesTags: ['Acquisition'],
+      }),
+      getAcquisitionStats: build.query<GetAcquisitionStatsApiResponse, GetAcquisitionStatsApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/stats`,
+          params: {
+            start: queryArg.start,
+            end: queryArg.end,
+          },
+        }),
+        providesTags: ['Acquisition'],
+      }),
+      getAcquisitionLeadSourcesByidByCampaign: build.query<
+        GetAcquisitionLeadSourcesByidByCampaignApiResponse,
+        GetAcquisitionLeadSourcesByidByCampaignApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign` }),
+        providesTags: ['Acquisition'],
+      }),
+      putAcquisitionLeadSourcesByidByCampaign: build.mutation<
+        PutAcquisitionLeadSourcesByidByCampaignApiResponse,
+        PutAcquisitionLeadSourcesByidByCampaignApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign`,
+          method: 'PUT',
+          body: queryArg.leadSourceCampaignParametersUpdate,
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      postAcquisitionLeadSourcesByidByCampaignByEventManagerByManual: build.mutation<
+        PostAcquisitionLeadSourcesByidByCampaignByEventManagerByManualApiResponse,
+        PostAcquisitionLeadSourcesByidByCampaignByEventManagerByManualApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}/campaign/event-manager/manual`,
+          method: 'POST',
+          body: queryArg.manualEventManagerConnectParameters,
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      getAcquisitionLeadSourcesByidByPromoter: build.query<
+        GetAcquisitionLeadSourcesByidByPromoterApiResponse,
+        GetAcquisitionLeadSourcesByidByPromoterApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/acquisition/lead-sources/${queryArg.id}/promoter` }),
+        providesTags: ['Acquisition'],
+      }),
+      putAcquisitionLeadSourcesByidByPromoter: build.mutation<
+        PutAcquisitionLeadSourcesByidByPromoterApiResponse,
+        PutAcquisitionLeadSourcesByidByPromoterApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/acquisition/lead-sources/${queryArg.id}/promoter`,
+          method: 'PUT',
+          body: queryArg.promoterParametersUpdate,
+        }),
+        invalidatesTags: ['Acquisition'],
+      }),
+      getNotifications: build.query<GetNotificationsApiResponse, GetNotificationsApiArg>({
+        query: () => ({ url: `/v1/notifications` }),
+        providesTags: ['Customer Notification'],
+      }),
+      putNotificationsReaded: build.mutation<
+        PutNotificationsReadedApiResponse,
+        PutNotificationsReadedApiArg
+      >({
+        query: () => ({ url: `/v1/notifications/readed`, method: 'PUT' }),
+        invalidatesTags: ['Customer Notification'],
+      }),
+      putNotificationsReadedById: build.mutation<
+        PutNotificationsReadedByIdApiResponse,
+        PutNotificationsReadedByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/notifications/readed/${queryArg.id}`, method: 'PUT' }),
+        invalidatesTags: ['Customer Notification'],
+      }),
+      getBillingRedirect: build.query<GetBillingRedirectApiResponse, GetBillingRedirectApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/billing/redirect`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Billing'],
+      }),
+      postBillingSessionResolve: build.mutation<
+        PostBillingSessionResolveApiResponse,
+        PostBillingSessionResolveApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/billing/session/resolve`,
+          method: 'POST',
+          body: queryArg.billingSessionResolveRequest,
+        }),
+        invalidatesTags: ['Billing'],
+      }),
+      getPublicVisitByBookingId: build.query<
+        GetPublicVisitByBookingIdApiResponse,
+        GetPublicVisitByBookingIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/public/booking/visits/${queryArg.id}` }),
+        providesTags: ['Public'],
+      }),
+      postPublicBookingBySalonId: build.mutation<
+        PostPublicBookingBySalonIdApiResponse,
+        PostPublicBookingBySalonIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/public/booking/salon/${queryArg.salonId}`,
+          method: 'POST',
+          body: queryArg.publicBookingParametersCreate,
+        }),
+        invalidatesTags: ['Public'],
+      }),
+      getPublicBookingSalonCatalog: build.query<
+        GetPublicBookingSalonCatalogApiResponse,
+        GetPublicBookingSalonCatalogApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/catalog` }),
+        providesTags: ['Catalog'],
+      }),
+      getPublicBookingSalonMasters: build.query<
+        GetPublicBookingSalonMastersApiResponse,
+        GetPublicBookingSalonMastersApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/masters` }),
+        providesTags: ['Masters'],
+      }),
+      getPublicBookingSalonProfile: build.query<
+        GetPublicBookingSalonProfileApiResponse,
+        GetPublicBookingSalonProfileApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/public/booking/salon/${queryArg.salonId}/profile` }),
+        providesTags: ['Salons'],
+      }),
+      getSalonBysalonIdByCatalog: build.query<
+        GetSalonBysalonIdByCatalogApiResponse,
+        GetSalonBysalonIdByCatalogApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/catalog` }),
+        providesTags: ['Catalog'],
+      }),
+      getSalonBysalonIdByMasters: build.query<
+        GetSalonBysalonIdByMastersApiResponse,
+        GetSalonBysalonIdByMastersApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/masters` }),
+        providesTags: ['Masters'],
+      }),
+      getSalonBysalonIdByProfile: build.query<
+        GetSalonBysalonIdByProfileApiResponse,
+        GetSalonBysalonIdByProfileApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/salon/${queryArg.salonId}/profile` }),
+        providesTags: ['Salons'],
+      }),
+      getSearch: build.query<GetSearchApiResponse, GetSearchApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/search`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Search'],
+      }),
+      postWorkspaceBillingPortalSession: build.mutation<
+        PostWorkspaceBillingPortalSessionApiResponse,
+        PostWorkspaceBillingPortalSessionApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/billing/portal-session`, method: 'POST' }),
+        invalidatesTags: ['Billing'],
+      }),
+      getWorkspaceBillingCatalog: build.query<
+        GetWorkspaceBillingCatalogApiResponse,
+        GetWorkspaceBillingCatalogApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/billing/catalog` }),
+        providesTags: ['Billing'],
+      }),
+      postWorkspaceBillingSession: build.mutation<
+        PostWorkspaceBillingSessionApiResponse,
+        PostWorkspaceBillingSessionApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/billing/session`, method: 'POST' }),
+        invalidatesTags: ['Billing'],
+      }),
+      postWorkspaceBillingCheckoutSession: build.mutation<
+        PostWorkspaceBillingCheckoutSessionApiResponse,
+        PostWorkspaceBillingCheckoutSessionApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/billing/checkout-session`,
+          method: 'POST',
+          body: queryArg.billingCheckoutSessionRequest,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Billing'],
+      }),
+      postWorkspaceBillingChangePlan: build.mutation<
+        PostWorkspaceBillingChangePlanApiResponse,
+        PostWorkspaceBillingChangePlanApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/billing/change-plan`,
+          method: 'POST',
+          body: queryArg.billingPlanChangeRequest,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Billing'],
+      }),
+      postWorkspaceBillingCancel: build.mutation<
+        PostWorkspaceBillingCancelApiResponse,
+        PostWorkspaceBillingCancelApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/billing/cancel`,
+          method: 'POST',
+          body: queryArg.billingSubscriptionCancelRequest,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Billing'],
+      }),
+      getWorkspaceBillingSummary: build.query<
+        GetWorkspaceBillingSummaryApiResponse,
+        GetWorkspaceBillingSummaryApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/billing/summary` }),
+        providesTags: ['Billing'],
+      }),
+      postWorkspaceConnectOnboardingLink: build.mutation<
+        PostWorkspaceConnectOnboardingLinkApiResponse,
+        PostWorkspaceConnectOnboardingLinkApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/connect/onboarding-link`,
+          method: 'POST',
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Connect'],
+      }),
+      getWorkspaceConnectStatus: build.query<
+        GetWorkspaceConnectStatusApiResponse,
+        GetWorkspaceConnectStatusApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/connect/status` }),
+        providesTags: ['Connect'],
+      }),
+      postTimetablesByOwnerByForce: build.mutation<
+        PostTimetablesByOwnerByForceApiResponse,
+        PostTimetablesByOwnerByForceApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/timetables/${queryArg.owner}/${queryArg.force}`,
+          method: 'POST',
+          body: queryArg.timetableParametersCreatePattern,
+        }),
+        invalidatesTags: ['Schedule'],
+      }),
+      getTimetablesSchedules: build.query<
+        GetTimetablesSchedulesApiResponse,
+        GetTimetablesSchedulesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/timetables/schedules`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Schedule'],
+      }),
+      postTimetablesSearchSlots: build.mutation<
+        PostTimetablesSearchSlotsApiResponse,
+        PostTimetablesSearchSlotsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/timetables/search-slots`,
+          method: 'POST',
+          body: queryArg.body,
+          params: {
+            query: queryArg.query,
+          },
+        }),
+        invalidatesTags: ['Schedule'],
+      }),
+      postUploadThumb: build.mutation<PostUploadThumbApiResponse, PostUploadThumbApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/upload/thumb`,
+          method: 'POST',
+          body: queryArg.uploadParametersThumb,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Upload'],
+      }),
+      deleteUsers: build.mutation<DeleteUsersApiResponse, DeleteUsersApiArg>({
+        query: () => ({ url: `/v1/users`, method: 'DELETE' }),
+        invalidatesTags: ['Users'],
+      }),
+      getUsers: build.query<GetUsersApiResponse, GetUsersApiArg>({
+        query: () => ({ url: `/v1/users` }),
+        providesTags: ['Users'],
+      }),
+      putUsers: build.mutation<PutUsersApiResponse, PutUsersApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/users`,
+          method: 'PUT',
+          body: queryArg.userParametersPatch,
+        }),
+        invalidatesTags: ['Users'],
+      }),
+      getUserRecoveryMethods: build.query<
+        GetUserRecoveryMethodsApiResponse,
+        GetUserRecoveryMethodsApiArg
+      >({
+        query: () => ({ url: `/v1/users/me/recovery-contacts` }),
+        providesTags: ['Recovery'],
+      }),
+      postUserRecoveryMethods: build.mutation<
+        PostUserRecoveryMethodsApiResponse,
+        PostUserRecoveryMethodsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/users/me/recovery-contacts`,
+          method: 'POST',
+          body: queryArg.recoveryParametersCreateMethod,
+        }),
+        invalidatesTags: ['Recovery'],
+      }),
+      patchUserRecoveryMethodByRecoveryMethodId: build.mutation<
+        PatchUserRecoveryMethodByRecoveryMethodIdApiResponse,
+        PatchUserRecoveryMethodByRecoveryMethodIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/users/me/recovery-contacts/${queryArg.recoveryMethodId}`,
+          method: 'PATCH',
+          body: queryArg.recoveryParametersPatchMethod,
+        }),
+        invalidatesTags: ['Recovery'],
+      }),
+      deleteUserRecoveryMethodByRecoveryMethodId: build.mutation<
+        DeleteUserRecoveryMethodByRecoveryMethodIdApiResponse,
+        DeleteUserRecoveryMethodByRecoveryMethodIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/users/me/recovery-contacts/${queryArg.recoveryMethodId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Recovery'],
+      }),
+      postUsersCustomer: build.mutation<PostUsersCustomerApiResponse, PostUsersCustomerApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/users/customer`,
+          method: 'POST',
+          body: queryArg.customerParametersRegistration,
+        }),
+        invalidatesTags: ['Users'],
+      }),
+      downloadAppleWalletBookingPass: build.query<
+        DownloadAppleWalletBookingPassApiResponse,
+        DownloadAppleWalletBookingPassApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/wallet/apple/booking/${queryArg.id}` }),
+        providesTags: ['WalletPass'],
+      }),
+      getWalletGoogleBookingByidBy: build.query<
+        GetWalletGoogleBookingByidByApiResponse,
+        GetWalletGoogleBookingByidByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/wallet/google/booking/${queryArg.id}` }),
+        providesTags: ['WalletPass'],
+      }),
+      deleteWorkspace: build.mutation<DeleteWorkspaceApiResponse, DeleteWorkspaceApiArg>({
+        query: () => ({ url: `/v1/workspace`, method: 'DELETE' }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      getWorkspace: build.query<GetWorkspaceApiResponse, GetWorkspaceApiArg>({
+        query: () => ({ url: `/v1/workspace` }),
+        providesTags: ['Workspaces'],
+      }),
+      postWorkspace: build.mutation<PostWorkspaceApiResponse, PostWorkspaceApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/workspace`,
+          method: 'POST',
+          body: queryArg.workspaceParametersCreate,
+        }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      putWorkspace: build.mutation<PutWorkspaceApiResponse, PutWorkspaceApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/workspace`,
+          method: 'PUT',
+          body: queryArg.workspaceParametersPatch,
+        }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      getWorkspaceById: build.query<GetWorkspaceByIdApiResponse, GetWorkspaceByIdApiArg>({
+        query: (queryArg) => ({ url: `/v1/workspace/${queryArg.id}` }),
+        providesTags: ['Workspaces'],
+      }),
+      putWorkspaceActivate: build.mutation<
+        PutWorkspaceActivateApiResponse,
+        PutWorkspaceActivateApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/activate`, method: 'PUT' }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      postWorkspaceAppointmentStart: build.mutation<
+        PostWorkspaceAppointmentStartApiResponse,
+        PostWorkspaceAppointmentStartApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/appointments/${queryArg.appointmentId}/start`,
+          method: 'POST',
+          body: queryArg.workspaceAppointmentParametersStart,
+        }),
+        invalidatesTags: ['Appointment'],
+      }),
+      postWorkspaceAppointmentComplete: build.mutation<
+        PostWorkspaceAppointmentCompleteApiResponse,
+        PostWorkspaceAppointmentCompleteApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/appointments/${queryArg.appointmentId}/complete`,
+          method: 'POST',
+          body: queryArg.workspaceAppointmentParametersComplete,
+        }),
+        invalidatesTags: ['Appointment'],
+      }),
+      postWorkspaceAppointmentNoShow: build.mutation<
+        PostWorkspaceAppointmentNoShowApiResponse,
+        PostWorkspaceAppointmentNoShowApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/appointments/${queryArg.appointmentId}/no-show`,
+          method: 'POST',
+          body: queryArg.workspaceAppointmentParametersNoShow,
+        }),
+        invalidatesTags: ['Appointment'],
+      }),
+      getWorkspaceBookings: build.query<
+        GetWorkspaceBookingsApiResponse,
+        GetWorkspaceBookingsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings`,
+          params: {
+            state: queryArg.state,
+          },
+        }),
+        providesTags: ['Booking'],
+      }),
+      postWorkspaceBookings: build.mutation<
+        PostWorkspaceBookingsApiResponse,
+        PostWorkspaceBookingsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings`,
+          method: 'POST',
+          body: queryArg.workspaceBookingParametersCreate,
+          headers: {
+            'Idempotency-Key': queryArg['Idempotency-Key'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      getWorkspaceBookingById: build.query<
+        GetWorkspaceBookingByIdApiResponse,
+        GetWorkspaceBookingByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/bookings/${queryArg.bookingId}` }),
+        providesTags: ['Booking'],
+      }),
+      postWorkspaceBookingApprove: build.mutation<
+        PostWorkspaceBookingApproveApiResponse,
+        PostWorkspaceBookingApproveApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/approve`,
+          method: 'POST',
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      postWorkspaceBookingReject: build.mutation<
+        PostWorkspaceBookingRejectApiResponse,
+        PostWorkspaceBookingRejectApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/reject`,
+          method: 'POST',
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      postWorkspaceBookingCancel: build.mutation<
+        PostWorkspaceBookingCancelApiResponse,
+        PostWorkspaceBookingCancelApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/cancel`,
+          method: 'POST',
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      postWorkspaceBookingReschedule: build.mutation<
+        PostWorkspaceBookingRescheduleApiResponse,
+        PostWorkspaceBookingRescheduleApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/reschedule`,
+          method: 'POST',
+          body: queryArg.workspaceBookingParametersReschedule,
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      postWorkspaceBookingEditServices: build.mutation<
+        PostWorkspaceBookingEditServicesApiResponse,
+        PostWorkspaceBookingEditServicesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/edit-services`,
+          method: 'POST',
+          body: queryArg.workspaceBookingParametersEditServices,
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      postWorkspaceBookingAddStaffNode: build.mutation<
+        PostWorkspaceBookingAddStaffNodeApiResponse,
+        PostWorkspaceBookingAddStaffNodeApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/bookings/${queryArg.bookingId}/add-staff-node`,
+          method: 'POST',
+          body: queryArg.workspaceBookingParametersAddStaffNode,
+          headers: {
+            'If-Match': queryArg['If-Match'],
+          },
+        }),
+        invalidatesTags: ['Booking'],
+      }),
+      getWorkspaceClients: build.query<GetWorkspaceClientsApiResponse, GetWorkspaceClientsApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Clients'],
+      }),
+      postWorkspaceClients: build.mutation<
+        PostWorkspaceClientsApiResponse,
+        PostWorkspaceClientsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients`,
+          method: 'POST',
+          body: queryArg.clientParametersCreate,
+        }),
+        invalidatesTags: ['Clients'],
+      }),
+      getWorkspaceClientsById: build.query<
+        GetWorkspaceClientsByIdApiResponse,
+        GetWorkspaceClientsByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.id}` }),
+        providesTags: ['Clients'],
+      }),
+      putWorkspaceClientsById: build.mutation<
+        PutWorkspaceClientsByIdApiResponse,
+        PutWorkspaceClientsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.clientParametersPatch,
+        }),
+        invalidatesTags: ['Clients'],
+      }),
+      getWorkspaceClientContacts: build.query<
+        GetWorkspaceClientContactsApiResponse,
+        GetWorkspaceClientContactsApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.clientId}/contacts` }),
+        providesTags: ['Contacts'],
+      }),
+      postWorkspaceClientContacts: build.mutation<
+        PostWorkspaceClientContactsApiResponse,
+        PostWorkspaceClientContactsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients/${queryArg.clientId}/contacts`,
+          method: 'POST',
+          body: queryArg.contactParametersCreateCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      patchWorkspaceClientContactByContactId: build.mutation<
+        PatchWorkspaceClientContactByContactIdApiResponse,
+        PatchWorkspaceClientContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients/${queryArg.clientId}/contacts/${queryArg.contactId}`,
+          method: 'PATCH',
+          body: queryArg.contactParametersPatchCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      deleteWorkspaceClientContactByContactId: build.mutation<
+        DeleteWorkspaceClientContactByContactIdApiResponse,
+        DeleteWorkspaceClientContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients/${queryArg.clientId}/contacts/${queryArg.contactId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      getWorkspaceClientsByIdByLinkCandidates: build.query<
+        GetWorkspaceClientsByIdByLinkCandidatesApiResponse,
+        GetWorkspaceClientsByIdByLinkCandidatesApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/clients/${queryArg.id}/link-candidates` }),
+        providesTags: ['Clients'],
+      }),
+      postWorkspaceClientsByIdByLinks: build.mutation<
+        PostWorkspaceClientsByIdByLinksApiResponse,
+        PostWorkspaceClientsByIdByLinksApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/clients/${queryArg.id}/links`,
+          method: 'POST',
+          body: queryArg.clientParametersCreateLink,
+        }),
+        invalidatesTags: ['Clients'],
+      }),
+      getWorkspaceComplex: build.query<GetWorkspaceComplexApiResponse, GetWorkspaceComplexApiArg>({
+        query: (queryArg) => ({
+          url: `/v1/workspace/complex`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Complex'],
+      }),
+      postWorkspaceComplex: build.mutation<
+        PostWorkspaceComplexApiResponse,
+        PostWorkspaceComplexApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/complex`,
+          method: 'POST',
+          body: queryArg.complexParametersCreate,
+        }),
+        invalidatesTags: ['Complex'],
+      }),
+      deleteWorkspaceComplexById: build.mutation<
+        DeleteWorkspaceComplexByIdApiResponse,
+        DeleteWorkspaceComplexByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/complex/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Complex'],
+      }),
+      getWorkspaceComplexById: build.query<
+        GetWorkspaceComplexByIdApiResponse,
+        GetWorkspaceComplexByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/complex/${queryArg.id}` }),
+        providesTags: ['Complex'],
+      }),
+      putWorkspaceComplexById: build.mutation<
+        PutWorkspaceComplexByIdApiResponse,
+        PutWorkspaceComplexByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/complex/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.complexParametersUpdate,
+        }),
+        invalidatesTags: ['Complex'],
+      }),
+      postWorkspaceImportedSalonsPreview: build.mutation<
+        PostWorkspaceImportedSalonsPreviewApiResponse,
+        PostWorkspaceImportedSalonsPreviewApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/imported-salons/preview`,
+          method: 'POST',
+          body: queryArg.importedSalonPreviewRequest,
+        }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      postWorkspaceImportedSalonsCommit: build.mutation<
+        PostWorkspaceImportedSalonsCommitApiResponse,
+        PostWorkspaceImportedSalonsCommitApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/imported-salons/commit`,
+          method: 'POST',
+          body: queryArg.importedSalonCommitRequest,
+        }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      postWorkspaceImportedSalonsClaimLink: build.mutation<
+        PostWorkspaceImportedSalonsClaimLinkApiResponse,
+        PostWorkspaceImportedSalonsClaimLinkApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/imported-salons/${queryArg.id}/claim-link`,
+          method: 'POST',
+          body: queryArg.importedSalonClaimLinkRequest,
+        }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      putWorkspaceDeactivate: build.mutation<
+        PutWorkspaceDeactivateApiResponse,
+        PutWorkspaceDeactivateApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/deactivate`, method: 'PUT' }),
+        invalidatesTags: ['Workspaces'],
+      }),
+      getWorkspaceEmployeeContacts: build.query<
+        GetWorkspaceEmployeeContactsApiResponse,
+        GetWorkspaceEmployeeContactsApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.employeeId}/contacts` }),
+        providesTags: ['Contacts'],
+      }),
+      postWorkspaceEmployeeContacts: build.mutation<
+        PostWorkspaceEmployeeContactsApiResponse,
+        PostWorkspaceEmployeeContactsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees/${queryArg.employeeId}/contacts`,
+          method: 'POST',
+          body: queryArg.contactParametersCreateCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      patchWorkspaceEmployeeContactByContactId: build.mutation<
+        PatchWorkspaceEmployeeContactByContactIdApiResponse,
+        PatchWorkspaceEmployeeContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees/${queryArg.employeeId}/contacts/${queryArg.contactId}`,
+          method: 'PATCH',
+          body: queryArg.contactParametersPatchCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      deleteWorkspaceEmployeeContactByContactId: build.mutation<
+        DeleteWorkspaceEmployeeContactByContactIdApiResponse,
+        DeleteWorkspaceEmployeeContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees/${queryArg.employeeId}/contacts/${queryArg.contactId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      getWorkspaceEmployees: build.query<
+        GetWorkspaceEmployeesApiResponse,
+        GetWorkspaceEmployeesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Employees'],
+      }),
+      deleteWorkspaceEmployeesById: build.mutation<
+        DeleteWorkspaceEmployeesByIdApiResponse,
+        DeleteWorkspaceEmployeesByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Employees'],
+      }),
+      getWorkspaceEmployeesById: build.query<
+        GetWorkspaceEmployeesByIdApiResponse,
+        GetWorkspaceEmployeesByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/employees/${queryArg.id}` }),
+        providesTags: ['Employees'],
+      }),
+      putWorkspaceEmployeesById: build.mutation<
+        PutWorkspaceEmployeesByIdApiResponse,
+        PutWorkspaceEmployeesByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.employeeParametersPatch,
+        }),
+        invalidatesTags: ['Employees'],
+      }),
+      getWorkspaceEmployeesCredentials: build.query<
+        GetWorkspaceEmployeesCredentialsApiResponse,
+        GetWorkspaceEmployeesCredentialsApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/employees/credentials` }),
+        providesTags: ['Employees'],
+      }),
+      postWorkspaceEmployeesInvite: build.mutation<
+        PostWorkspaceEmployeesInviteApiResponse,
+        PostWorkspaceEmployeesInviteApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/employees/invite`,
+          method: 'POST',
+          body: queryArg.employeeParametersInvite,
+        }),
+        invalidatesTags: ['Employees'],
+      }),
+      getWorkspaceSalonContacts: build.query<
+        GetWorkspaceSalonContactsApiResponse,
+        GetWorkspaceSalonContactsApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/salons/${queryArg.salonId}/contacts` }),
+        providesTags: ['Contacts'],
+      }),
+      postWorkspaceSalonContacts: build.mutation<
+        PostWorkspaceSalonContactsApiResponse,
+        PostWorkspaceSalonContactsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/salons/${queryArg.salonId}/contacts`,
+          method: 'POST',
+          body: queryArg.contactParametersCreateCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      patchWorkspaceSalonContactByContactId: build.mutation<
+        PatchWorkspaceSalonContactByContactIdApiResponse,
+        PatchWorkspaceSalonContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/salons/${queryArg.salonId}/contacts/${queryArg.contactId}`,
+          method: 'PATCH',
+          body: queryArg.contactParametersPatchCommunication,
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      deleteWorkspaceSalonContactByContactId: build.mutation<
+        DeleteWorkspaceSalonContactByContactIdApiResponse,
+        DeleteWorkspaceSalonContactByContactIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/salons/${queryArg.salonId}/contacts/${queryArg.contactId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Contacts'],
+      }),
+      getWorkspaceNotifications: build.query<
+        GetWorkspaceNotificationsApiResponse,
+        GetWorkspaceNotificationsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/notifications`,
+          params: {
+            limit: queryArg.limit,
+            cursor: queryArg.cursor,
+          },
+        }),
+        providesTags: ['Notifications'],
+      }),
+      putWorkspaceNotificationsReaded: build.mutation<
+        PutWorkspaceNotificationsReadedApiResponse,
+        PutWorkspaceNotificationsReadedApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/notifications/readed`, method: 'PUT' }),
+        invalidatesTags: ['Notifications'],
+      }),
+      putWorkspaceNotificationsReadedById: build.mutation<
+        PutWorkspaceNotificationsReadedByIdApiResponse,
+        PutWorkspaceNotificationsReadedByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/notifications/readed/${queryArg.id}`,
+          method: 'PUT',
+        }),
+        invalidatesTags: ['Notifications'],
+      }),
+      deleteWorkspaceOfftimeById: build.mutation<
+        DeleteWorkspaceOfftimeByIdApiResponse,
+        DeleteWorkspaceOfftimeByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/offtime/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Offtime'],
+      }),
+      getWorkspaceOfftimeByOwner: build.query<
+        GetWorkspaceOfftimeByOwnerApiResponse,
+        GetWorkspaceOfftimeByOwnerApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/offtime/owner/${queryArg.owner}` }),
+        providesTags: ['Offtime'],
+      }),
+      postWorkspaceOfftimeByOwner: build.mutation<
+        PostWorkspaceOfftimeByOwnerApiResponse,
+        PostWorkspaceOfftimeByOwnerApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/offtime/owner/${queryArg.owner}`,
+          method: 'POST',
+          body: queryArg.offtimeParametersCreate,
+        }),
+        invalidatesTags: ['Offtime'],
+      }),
+      getWorkspacePositions: build.query<
+        GetWorkspacePositionsApiResponse,
+        GetWorkspacePositionsApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/positions` }),
+        providesTags: ['Positions'],
+      }),
+      postWorkspacePositions: build.mutation<
+        PostWorkspacePositionsApiResponse,
+        PostWorkspacePositionsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/positions`,
+          method: 'POST',
+          body: queryArg.positionParametersCreate,
+        }),
+        invalidatesTags: ['Positions'],
+      }),
+      deleteWorkspacePositionsById: build.mutation<
+        DeleteWorkspacePositionsByIdApiResponse,
+        DeleteWorkspacePositionsByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/positions/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Positions'],
+      }),
+      getWorkspacePositionsById: build.query<
+        GetWorkspacePositionsByIdApiResponse,
+        GetWorkspacePositionsByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/positions/${queryArg.id}` }),
+        providesTags: ['Positions'],
+      }),
+      putWorkspacePositionsById: build.mutation<
+        PutWorkspacePositionsByIdApiResponse,
+        PutWorkspacePositionsByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/positions/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.positionParametersPatch,
+        }),
+        invalidatesTags: ['Positions'],
+      }),
+      getWorkspaceProcedures: build.query<
+        GetWorkspaceProceduresApiResponse,
+        GetWorkspaceProceduresApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Procedures'],
+      }),
+      postWorkspaceProcedures: build.mutation<
+        PostWorkspaceProceduresApiResponse,
+        PostWorkspaceProceduresApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures`,
+          method: 'POST',
+          body: queryArg.procedureParametersCreate,
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      deleteWorkspaceProceduresById: build.mutation<
+        DeleteWorkspaceProceduresByIdApiResponse,
+        DeleteWorkspaceProceduresByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/procedures/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Procedures'],
+      }),
+      getWorkspaceProceduresById: build.query<
+        GetWorkspaceProceduresByIdApiResponse,
+        GetWorkspaceProceduresByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/procedures/${queryArg.id}` }),
+        providesTags: ['Procedures'],
+      }),
+      putWorkspaceProceduresById: build.mutation<
+        PutWorkspaceProceduresByIdApiResponse,
+        PutWorkspaceProceduresByIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.procedureParametersUpdate,
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      patchWorkspaceProceduresByIdSettings: build.mutation<
+        PatchWorkspaceProceduresByIdSettingsApiResponse,
+        PatchWorkspaceProceduresByIdSettingsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/settings`,
+          method: 'PATCH',
+          body: queryArg.procedureParametersPatchSettings,
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      postWorkspaceProceduresByIdArchive: build.mutation<
+        PostWorkspaceProceduresByIdArchiveApiResponse,
+        PostWorkspaceProceduresByIdArchiveApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/archive`,
+          method: 'POST',
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      postWorkspaceProceduresByIdRestore: build.mutation<
+        PostWorkspaceProceduresByIdRestoreApiResponse,
+        PostWorkspaceProceduresByIdRestoreApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/restore`,
+          method: 'POST',
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      getWorkspaceProceduresByIdExecutionsByExecutionId: build.query<
+        GetWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
+        GetWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
+        }),
+        providesTags: ['Procedures'],
+      }),
+      patchWorkspaceProceduresByIdExecutionsByExecutionId: build.mutation<
+        PatchWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
+        PatchWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
+          method: 'PATCH',
+          body: queryArg.procedureExecutionParametersPatch,
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      deleteWorkspaceProceduresByIdExecutionsByExecutionId: build.mutation<
+        DeleteWorkspaceProceduresByIdExecutionsByExecutionIdApiResponse,
+        DeleteWorkspaceProceduresByIdExecutionsByExecutionIdApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/procedures/${queryArg.id}/executions/${queryArg.executionId}`,
+          method: 'DELETE',
+        }),
+        invalidatesTags: ['Procedures'],
+      }),
+      getWorkspaceProducts: build.query<
+        GetWorkspaceProductsApiResponse,
+        GetWorkspaceProductsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/products`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Products'],
+      }),
+      postWorkspaceProducts: build.mutation<
+        PostWorkspaceProductsApiResponse,
+        PostWorkspaceProductsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/products`,
+          method: 'POST',
+          body: queryArg.productParametersCreate,
+        }),
+        invalidatesTags: ['Products'],
+      }),
+      deleteWorkspaceProductsByidBy: build.mutation<
+        DeleteWorkspaceProductsByidByApiResponse,
+        DeleteWorkspaceProductsByidByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/products/${queryArg.id}`, method: 'DELETE' }),
+        invalidatesTags: ['Products'],
+      }),
+      getWorkspaceProductsByidBy: build.query<
+        GetWorkspaceProductsByidByApiResponse,
+        GetWorkspaceProductsByidByApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/products/${queryArg.id}` }),
+        providesTags: ['Products'],
+      }),
+      putWorkspaceProductsByidBy: build.mutation<
+        PutWorkspaceProductsByidByApiResponse,
+        PutWorkspaceProductsByidByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/products/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.productParametersUpdate,
+        }),
+        invalidatesTags: ['Products'],
+      }),
+      getWorkspaceProductsByidByStockAdjustments: build.query<
+        GetWorkspaceProductsByidByStockAdjustmentsApiResponse,
+        GetWorkspaceProductsByidByStockAdjustmentsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/products/${queryArg.id}/stock-adjustments`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Products'],
+      }),
+      postWorkspaceProductsByidByStockAdjustments: build.mutation<
+        PostWorkspaceProductsByidByStockAdjustmentsApiResponse,
+        PostWorkspaceProductsByidByStockAdjustmentsApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/products/${queryArg.id}/stock-adjustments`,
+          method: 'POST',
+          body: queryArg.productStockAdjustmentParametersCreate,
+        }),
+        invalidatesTags: ['Products'],
+      }),
+      getWorkspaceProductsOptions: build.query<
+        GetWorkspaceProductsOptionsApiResponse,
+        GetWorkspaceProductsOptionsApiArg
+      >({
+        query: () => ({ url: `/v1/workspace/products/options` }),
+        providesTags: ['Products'],
+      }),
+      getWorkspaceServices: build.query<
+        GetWorkspaceServicesApiResponse,
+        GetWorkspaceServicesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/services`,
+          params: {
+            parameters: queryArg.parameters,
+          },
+        }),
+        providesTags: ['Services'],
+      }),
+      postWorkspaceServices: build.mutation<
+        PostWorkspaceServicesApiResponse,
+        PostWorkspaceServicesApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/services`,
+          method: 'POST',
+          body: queryArg.serviceParametersCreate,
+        }),
+        invalidatesTags: ['Services'],
+      }),
+      getWorkspaceServicesById: build.query<
+        GetWorkspaceServicesByIdApiResponse,
+        GetWorkspaceServicesByIdApiArg
+      >({
+        query: (queryArg) => ({ url: `/v1/workspace/services/${queryArg.id}` }),
+        providesTags: ['Services'],
+      }),
+      putWorkspaceServicesByidBy: build.mutation<
+        PutWorkspaceServicesByidByApiResponse,
+        PutWorkspaceServicesByidByApiArg
+      >({
+        query: (queryArg) => ({
+          url: `/v1/workspace/services/${queryArg.id}`,
+          method: 'PUT',
+          body: queryArg.serviceParametersUpdate,
+        }),
+        invalidatesTags: ['Services'],
+      }),
+    }),
+    overrideExisting: false,
+  });
 export { injectedRtkApi as _api };
 export type PostAuthAppleApiResponse = /** status 200 OK */ AuthResponsesSuccessAuth;
 export type PostAuthAppleApiArg = {
