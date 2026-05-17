@@ -1,6 +1,7 @@
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 const eslintConfig = [
   { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
@@ -22,6 +23,10 @@ const eslintConfig = [
       'src/app/store-provider.tsx',
       'src/app/layout.tsx',
     ],
+    // Register the plugin in this same config object so the rule references
+    // resolve regardless of dependency hoisting (do not rely on the plugin
+    // being provided transitively by eslint-config-next).
+    plugins: { 'react-hooks': reactHooks },
     rules: {
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/refs': 'warn',

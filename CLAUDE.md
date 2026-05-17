@@ -66,16 +66,40 @@ lint stays green (warnings only) while the issues stay visible for future reimpl
 ## API Code Generation (RTK Query + OpenAPI)
 
 ```bash
-cd src/services/maestri
-bunx @rtk-query/codegen-openapi codegen-config.ts
+bun run codegen   # = (cd src/services/maestri && rtk-query-codegen-openapi codegen-config.cjs)
 ```
 
-- Reads `src/services/maestri/openapi.json`. **`openapi.json` is gitignored** (`src/services/**/*.json`)
-  — it must be supplied externally before regenerating; it is not in the repo.
-- `codegen-config.ts`: `apiFile: ./reducer.ts`, `exportName: _api`, `hooks: true`, and an
-  `endpointOverrides` that strips the `Device-ID` header param from every generated signature (it's
-  injected centrally by the base query instead).
-- `api-generated.ts` (~2k lines, **committed**) is the generated output — do not hand-edit it.
+- **Config is `codegen-config.cjs` — plain CommonJS on purpose.** The codegen CLI loads the
+  config with a bare Node `require()`; it only needs a TS loader (`esbuild-runner`/`ts-node`) for a
+  `.ts` config. Using `.cjs` removes that dependency entirely (both loaders were removed from
+  devDependencies) — nothing fragile to break. The file keeps full editor type-safety via
+  `// @ts-check` + a JSDoc `@type {import('@rtk-query/codegen-openapi').ConfigFile}` annotation.
+- **Use `bun run codegen`, not `bunx @rtk-query/codegen-openapi`.** `bunx` fetches an isolated
+  copy with its own dependency tree and won't resolve the project's pinned `ajv` (gotcha below).
+  The `codegen` script runs the **local** bin from `node_modules/.bin`, sharing the locked deps.
+- **Schema: `src/services/maestri/openapi.yaml`** — OpenAPI **3.1**, from the **private** repo
+  `Maetry/shared-kit`, **pinned to a commit SHA** (not `main`) for reproducibility. It is
+  **gitignored** (`src/services/**/*.yaml`) and absent on a fresh clone — fetch it before
+  regenerating:
+  ```bash
+  gh api -H "Accept: application/vnd.github.raw" \
+    "repos/Maetry/shared-kit/contents/generated/maetry-openapi-docs-3.1.yaml?ref=9a7f9dcb4ceaed8945374ad8de35309232e1f75d" \
+    > src/services/maestri/openapi.yaml
+  ```
+  To intentionally adopt a newer schema: bump the `?ref=` SHA here (and in the PR/commit), re-fetch,
+  `bun run codegen`, review the `api-generated.ts` diff.
+- **`ajv@8` is a direct devDependency on purpose** (pinned exact `8.20.0`). `@rtk-query/codegen-openapi`
+  → `@apidevtools/swagger-parser` → `ajv-draft-04` needs `ajv@^8` (peer dep), but `eslint` pulls
+  `ajv@^6` and Bun hoists that to the top level — so without a direct `ajv@8`, codegen crashes
+  with `Cannot find module 'ajv/dist/core'`. The direct dep forces `ajv@8` to the top level
+  (`eslint` then gets a nested `ajv@6`). Don't remove it.
+- `codegen-config.cjs`: `schemaFile: openapi.yaml`, `apiFile: ./reducer.ts`, `exportName: _api`,
+  `hooks: true`, `tag: true` (generates `providesTags`/`invalidatesTags` from OpenAPI tags so
+  mutations auto-invalidate related queries — coarse by tag; hand-tune per endpoint in
+  `enhanced-api.ts` when needed), and an `endpointOverrides` that strips the `Device-ID` header
+  param from every generated signature (it's injected centrally by the base query instead).
+- `api-generated.ts` (~4k lines, **committed**) is the generated output — do not hand-edit it.
+  Regeneration is deterministic (byte-identical given the same schema).
 - Add custom per-endpoint logic in `enhanced-api.ts` via `_api.enhanceEndpoints(...)`, not in the
   generated file.
 

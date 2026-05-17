@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "codegen": "cd src/services/maestri && rtk-query-codegen-openapi codegen-config.cjs",
     "dev": "next dev --experimental-https",
     "format:check": "prettier . --check",
     "format:write": "prettier . --write",
@@ -43,14 +44,13 @@
     "@types/qs": "6.15.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "esbuild-runner": "2.2.2",
+    "ajv": "8.20.0",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-hooks": "7.1.1",
     "prettier": "3.8.3",
     "tailwindcss": "4.3.0",
-    "ts-node": "10.9.2",
     "typescript": "6.0.3"
   },
   "packageManager": "bun@1.2.15",
