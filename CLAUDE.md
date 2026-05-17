@@ -66,16 +66,31 @@ lint stays green (warnings only) while the issues stay visible for future reimpl
 ## API Code Generation (RTK Query + OpenAPI)
 
 ```bash
-cd src/services/maestri
-bunx @rtk-query/codegen-openapi codegen-config.ts
+bun run codegen   # = (cd src/services/maestri && rtk-query-codegen-openapi codegen-config.ts)
 ```
 
-- Reads `src/services/maestri/openapi.json`. **`openapi.json` is gitignored** (`src/services/**/*.json`)
-  — it must be supplied externally before regenerating; it is not in the repo.
-- `codegen-config.ts`: `apiFile: ./reducer.ts`, `exportName: _api`, `hooks: true`, and an
-  `endpointOverrides` that strips the `Device-ID` header param from every generated signature (it's
-  injected centrally by the base query instead).
-- `api-generated.ts` (~2k lines, **committed**) is the generated output — do not hand-edit it.
+- **Use `bun run codegen`, not `bunx @rtk-query/codegen-openapi`.** `bunx` fetches an isolated
+  copy of the package that can't see the project's `esbuild-runner`/`ts-node` (needed to load the
+  `.ts` config) or the correct `ajv` (see gotcha below). The `codegen` script runs the **local**
+  bin from `node_modules/.bin`, sharing the project's deps.
+- **Schema: `src/services/maestri/openapi.yaml`** — OpenAPI **3.1**, sourced from the **private**
+  repo `Maetry/shared-kit` at `generated/maetry-openapi-docs-3.1.yaml`. It is **gitignored**
+  (`src/services/**/*.yaml`) and absent on a fresh clone — fetch it before regenerating:
+  ```bash
+  gh api -H "Accept: application/vnd.github.raw" \
+    "repos/Maetry/shared-kit/contents/generated/maetry-openapi-docs-3.1.yaml?ref=main" \
+    > src/services/maestri/openapi.yaml
+  ```
+- **`ajv@8` is a direct devDependency on purpose.** `@rtk-query/codegen-openapi` →
+  `@apidevtools/swagger-parser` → `ajv-draft-04` needs `ajv@^8` (peer dep), but `eslint` pulls
+  `ajv@^6` and Bun hoists that to the top level — so without a direct `ajv@8`, codegen crashes
+  with `Cannot find module 'ajv/dist/core'`. The direct dep forces `ajv@8` to the top level
+  (`eslint` then gets a nested `ajv@6`). Don't remove it.
+- `codegen-config.ts`: `schemaFile: openapi.yaml`, `apiFile: ./reducer.ts`, `exportName: _api`,
+  `hooks: true`, and an `endpointOverrides` that strips the `Device-ID` header param from every
+  generated signature (it's injected centrally by the base query instead).
+- `api-generated.ts` (~4k lines, **committed**) is the generated output — do not hand-edit it.
+  Regeneration is deterministic (byte-identical given the same schema).
 - Add custom per-endpoint logic in `enhanced-api.ts` via `_api.enhanceEndpoints(...)`, not in the
   generated file.
 
