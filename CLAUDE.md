@@ -154,6 +154,32 @@ logic) → consumed via RTK Query hooks; store wired in `src/store/index.ts`.
 - **Prettier**: `printWidth: 100`, `singleQuote: true` (`prettier.config.mjs`). shadcn CLI emits
   double-quoted code — run `bun run format:write` after adding components.
 
+## AI agent tooling (skills & MCP)
+
+Committed so the whole team's Claude Code gets them — **not** app code.
+
+- **Agent Skills** live in `.claude/skills/<name>/` (auto-discovered by Claude Code; descriptions
+  always in context, full body loaded on demand). Vendored from upstream — treat as generated:
+  refresh by re-copying from source, don't hand-edit.
+  - **Official (Vercel — `vercel-labs/agent-skills`):** `vercel-react-best-practices`,
+    `vercel-composition-patterns`, `vercel-react-view-transitions`, `web-design-guidelines`
+    (the last one is thin by design — it `WebFetch`es live rules from
+    `vercel-labs/web-interface-guidelines`, so it needs network at review time).
+    `react-native-skills`, `deploy-to-vercel`, `vercel-cli-with-tokens` were intentionally
+    **excluded** (RN / deploy — irrelevant to this web app).
+  - **Community (`secondsky/claude-skills`, MIT, not Vercel-official):** `nextjs` (Next 16 / RC /
+    Server Actions / async params), `tailwind-v4-shadcn` (CSS-first v4 + `@theme inline` + dark
+    mode — matches `globals.css`; its setup bits assume Vite, our bundler is Next — apply the
+    theming guidance, ignore the Vite specifics), `base-ui-react` (Radix→Base UI migration +
+    component templates — note it references the `@base-ui-components/react` package name; this
+    project uses `@base-ui/react`, so adapt imports).
+- **MCP: Chrome DevTools** — project-scoped `.mcp.json` at repo root, server `chrome-devtools`
+  (`npx -y chrome-devtools-mcp@latest`, official `ChromeDevTools/chrome-devtools-mcp`). `npx` (not
+  bun) is the maintainer-documented invocation. Prereqs: Node ≥20.19 + Chrome installed. Project
+  `.mcp.json` servers prompt for approval on first use in Claude Code. Use it to drive/inspect the
+  app at **`https://localhost:3000`** (`bun run dev` is HTTPS; the self-signed cert may need
+  `--isolated`/accepting the cert). Optional flags: `--headless`, `--isolated`, `--slim`.
+
 ## Known gotchas
 
 - **`next-intl` is an unused dependency** — no i18n config/middleware/messages. **All UI text is

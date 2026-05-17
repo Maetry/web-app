@@ -4,7 +4,9 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 const eslintConfig = [
-  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
+  // `.claude/**` holds vendored agent skills (incl. example .ts/.tsx templates)
+  // — not project code; never lint it.
+  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', '.claude/**'] },
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
